@@ -1,2 +1,2 @@
-# Run-Dont-Walk
-Repository for Orbital 26 project (Run Don't Walk)
+# Walk-Dont-Run
+Repository for Orbital 26 project (Walk Don't Run)
