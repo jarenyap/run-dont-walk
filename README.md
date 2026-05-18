@@ -6,7 +6,7 @@ A mobile-first social running app built with React Native, Expo, and Firebase.
 - React Native + Expo (SDK 54)
 - Firebase (Auth, Firestore, Storage)
 - Jest (testing)
-- Recharts (data visualisation)
+- Victory Native (data visualisation)
 
 ## Prerequisites
 - Node.js (v24 LTS)
