@@ -15,7 +15,7 @@ A mobile-first social running app built with React Native, Expo, and Firebase.
 ## Setup
 1. Clone the repo
 2. Run `npm install`
-3. Copy `.env.example` to `.env` and fill in Firebase credentials (get from Jaren)
+3. Copy `.env.example` to `.env` and fill in Firebase credentials
 4. Run `npx expo start`
 5. Scan the QR code with Expo Go
 
