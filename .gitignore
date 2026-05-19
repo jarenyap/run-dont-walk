@@ -40,8 +40,3 @@ yarn-error.*
 # generated native folders
 /ios
 /android
-
-# Cursor AI agent files
-CLAUDE.md
-AGENTS.md
-.claude/
