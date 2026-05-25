@@ -3,9 +3,6 @@
     "name": "Walk-Dont-Run",
     "slug": "Walk-Dont-Run",
     "scheme": "Walk-Dont-Run",
-    "web": {
-      "bundler": "metro"
-    },
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -28,6 +25,7 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
+      "bundler": "metro",
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
