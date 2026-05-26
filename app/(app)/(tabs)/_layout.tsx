@@ -4,9 +4,9 @@ import { HouseIcon, SneakerMoveIcon, CastleTurretIcon, CalendarBlankIcon, UserCi
 export default function TabLayout() {
     return (
         <Tabs screenOptions={{
-            tabBarActiveTintColor: '#C5ACFF',
+            tabBarActiveTintColor: '#5F19FF',
             tabBarInactiveTintColor: '#8E8E93',
-            tabBarStyle: { backgroundColor: '#2C2C2C' },
+            tabBarStyle: { backgroundColor: '#F9F9F9' },
             headerShown: false,
         }}
         >
