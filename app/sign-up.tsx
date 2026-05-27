@@ -34,7 +34,7 @@ export default function SignUp() {
         }
         try {
             await signUp(name.trim(), email.trim(), pass);
-            router.replace("/(app)/(tab)/feed");
+            router.replace("/(app)/(tabs)/profile");
         } catch (e: any) {
             Alert.alert("Sign Up Failed", getAuthErrorMessage(e.code));
         }

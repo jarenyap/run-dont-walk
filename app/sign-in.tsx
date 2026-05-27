@@ -12,7 +12,7 @@ export default function SignIn() {
     const handleSignIn = async () => {
         try {
             await signIn(email.trim(), pass);
-            router.replace("/(app)/(tab)/feed");
+            router.replace("/(app)/(tabs)/profile");
         } catch (e: any) {
             Alert.alert("Sign In Failed", getAuthErrorMessage(e.code));
         }

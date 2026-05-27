@@ -14,7 +14,7 @@ export default function Index() {
     }
 
     if (user) {
-        return <Redirect href="/(app)/(tab)/feed" />;
+        return <Redirect href="/(app)/(tabs)/profile" />;
     }
 
     return <Redirect href="/sign-in" />;
