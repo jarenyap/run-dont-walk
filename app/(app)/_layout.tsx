@@ -17,5 +17,20 @@ export default function AppLayout() {
         return <Redirect href="/sign-in" />;
     }
 
-    return <Stack screenOptions={{ headerShown: false }} />;
+    return (
+        <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen
+                name="(tabs)"
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="log-run"
+                options={{
+                    presentation: 'modal',
+                    title: 'Log Run',
+                    headerShown: true,
+                }}
+            />
+        </Stack>
+    );
 }
