@@ -1,11 +1,21 @@
-import { Stack } from "expo-router";
-
+import { Redirect, Stack } from "expo-router";
+import { useAuth } from "../../context/Auth";
+import { ActivityIndicator, View } from "react-native";
 
 export default function AppLayout() {
-    // TODO: add auth guard here once AuthContext is ready
-    // const { user, loading } = useAuth();
-    // if (loading) { return <ActivityIndicator />; }
-    // if (!user) { return <Redirect href="/sign-in" />; }
+    const { user, loading } = useAuth();
+
+    if (loading) {
+        return (
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                <ActivityIndicator size="large" color="#6366f1" />
+            </View>
+        );
+    }
+
+    if (!user) {
+        return <Redirect href="/sign-in" />;
+    }
 
     return (
         <Stack screenOptions={{ headerShown: false }}>
