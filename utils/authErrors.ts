@@ -22,4 +22,3 @@ export const getAuthErrorMessage = (code: string): string => {
       return "Something went wrong. Please try again.";
   }
 };
-//

@@ -12,7 +12,7 @@ export default function SignIn() {
     const handleSignIn = async () => {
         try {
             await signIn(email.trim(), pass);
-            router.replace("/(app)/(tabs)/profile");
+            router.replace("/(app)/(tabs)/home-feed");
         } catch (e: any) {
             Alert.alert("Sign In Failed", getAuthErrorMessage(e.code));
         }
@@ -50,11 +50,43 @@ export default function SignIn() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: "center", padding: 24, backgroundColor: "#f5f5f5" },
-    title: { fontSize: 28, fontWeight: "bold", marginBottom: 32, textAlign: "center" },
-    input: { borderWidth: 1, borderColor: "#ddd", padding: 16, marginBottom: 16, borderRadius: 8, backgroundColor: "#fff" },                                                                                                                                                                                                                                                            
-    button: { backgroundColor: "#6C2BFF", padding: 16, borderRadius: 8, alignItems: "center", marginTop: 8 },
-    buttonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
-    linkButton: { marginTop: 16, alignItems: "center"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   },
-    linkText: { color: "#6C2BFF" }
+    container: { 
+        flex: 1, 
+        justifyContent: "center", 
+        padding: 24, 
+        backgroundColor: "#f5f5f5" 
+    },
+    title: { 
+        fontSize: 28, 
+        fontWeight: "bold", 
+        marginBottom: 32, 
+        textAlign: "center" 
+    },
+    input: { 
+        borderWidth: 1, 
+        borderColor: "#ddd", 
+        padding: 16, 
+        marginBottom: 16, 
+        borderRadius: 8, 
+        backgroundColor: "#fff" 
+    },
+    button: { 
+        backgroundColor: "#6C2BFF", 
+        padding: 16, 
+        borderRadius: 8, 
+        alignItems: "center", 
+        marginTop: 8 
+    },
+    buttonText: { 
+        color: "#fff", 
+        fontWeight: "bold", 
+        fontSize: 16 
+    },
+    linkButton: { 
+        marginTop: 16, 
+        alignItems: "center"
+    },
+    linkText: { 
+        color: "#6C2BFF" 
+    }
 });

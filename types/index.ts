@@ -1,10 +1,10 @@
-import { Timestamp } from 'firebase/firestore';
+import { Timestamp, FieldValue } from "firebase/firestore";
 
-export type UserRole = 'user' | 'moderator' | 'admin';
-export type RunType = 'easy' | 'tempo' | 'long' | 'race';
-export type EventDifficulty = 'easy' | 'moderate' | 'hard';
-export type WarStatus = 'active' | 'completed';
-export type FollowRequestStatus = 'pending' | 'accepted' | 'rejected';
+export type UserRole = "user" | "moderator" | "admin";
+export type RunType = "easy" | "tempo" | "long" | "race";
+export type EventDifficulty = "easy" | "moderate" | "hard";
+export type WarStatus = "active" | "completed";
+export type FollowRequestStatus = "pending" | "accepted" | "rejected";
 
 export interface UserProfile {
   id: string;
@@ -18,7 +18,7 @@ export interface UserProfile {
   followingIds: string[];
   followerIds: string[];
   clanId: string | null;
-  createdAt: Timestamp;
+  createdAt: Timestamp | FieldValue;
 }
 
 export interface Run {

@@ -9,11 +9,11 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 28,
-        fontWeight: 'bold',
+        fontWeight: "bold",
     },
     subtitle: {
         fontSize: 22,
-        fontWeight: '600',
+        fontWeight: "600",
     },
     button: { 
         marginTop: 40, 
@@ -33,8 +33,8 @@ export default function ProfileScreen() {
         return (
             <View style={styles.container}>
                 <Text style={styles.title}>Welcome back, {profile?.name || "Runner"}!</Text>
-    
-                <Text>Total distance: {profile?.totalDistance || 0} km</Text>
+
+                <Text style={styles.subtitle}>Total distance: {profile?.totalDistance || 0} km</Text>
     
                 <Pressable style={styles.button} onPress={signOut}>
                     <Text style={styles.buttonText}>Log Out</Text>

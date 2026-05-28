@@ -22,17 +22,25 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-            setUser(firebaseUser);
-            if (firebaseUser) {
-                const profileDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-                if (profileDoc.exists()) {
-                    setProfile(profileDoc.data() as UserProfile);
-                }
-            } else {
-                setProfile(null);
-            }
-            setLoading(false);
+            try {
+                 setUser(firebaseUser);
+                 if (firebaseUser) {
+                     const profileDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+                     if (profileDoc.exists()) {
+                         setProfile(profileDoc.data() as UserProfile);
+                     } else {
+                         setProfile(null);
+                     }
+                 } else {
+                     setProfile(null);
+                 }
+                } catch {
+                    setProfile(null);
+             } finally {
+                 setLoading(false);
+             }
     });
+                
     return unsubscribe;
 }, []);
 

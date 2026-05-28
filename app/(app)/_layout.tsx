@@ -8,7 +8,7 @@ export default function AppLayout() {
     if (loading) {
         return (
             <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                <ActivityIndicator size="large" color="#636611" />
+                <ActivityIndicator size="large" color="#6366f1" />
             </View>
         );
     }
