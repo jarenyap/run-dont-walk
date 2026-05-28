@@ -27,6 +27,8 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
                 const profileDoc = await getDoc(doc(db, "users", firebaseUser.uid));
                 if (profileDoc.exists()) {
                     setProfile(profileDoc.data() as UserProfile);
+                } else {
+                    setProfile(null);
                 }
             } else {
                 setProfile(null);
