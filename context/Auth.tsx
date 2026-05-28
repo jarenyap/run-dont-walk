@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, PropsWithChildren } from 'react';
+import { createContext, useContext, useState, useEffect, PropsWithChildren } from "react";
 import { User, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as FBsignOut, updateProfile } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
