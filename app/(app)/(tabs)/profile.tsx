@@ -29,14 +29,20 @@ const styles = StyleSheet.create({
 
 export default function ProfileScreen() {
     const { profile, signOut } = useAuth();
-    
-        return (
-            <View style={styles.container}>
-                <Text style={styles.title}>Welcome back, {profile?.name || "Runner"}!</Text>
+    const handleSignOut = async () => {
+        try {
+            await signOut();
+        } catch (e) {
+            console.error("Failed to sign out:", e);
+        }
+    };
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>Welcome back, {profile?.name || "Runner"}!</Text>
 
                 <Text style={styles.subtitle}>Total distance: {profile?.totalDistance || 0} km</Text>
     
-                <Pressable style={styles.button} onPress={signOut}>
+                <Pressable style={styles.button} onPress={handleSignOut}>
                     <Text style={styles.buttonText}>Log Out</Text>
                 </Pressable>
             </View>
