@@ -1,10 +1,10 @@
-import { collection, addDoc, query, where, orderBy, getDocs, onSnapshot, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
-import { NewRun, Run } from '../types';
+import { collection, addDoc, query, where, orderBy, getDocs, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebaseConfig";
+import { NewRun, Run } from "../types";
 
 export const logRun = async (newRun: NewRun): Promise<string> => {
     try {
-        const docRef = await addDoc(collection(db, 'runs'), {
+        const docRef = await addDoc(collection(db, "runs"), {
             ...newRun,
             createdAt: serverTimestamp(),
             likes: [],
@@ -12,7 +12,7 @@ export const logRun = async (newRun: NewRun): Promise<string> => {
         });
         return docRef.id;
     } catch (error) {
-        console.error('Error logging run:', error);
+        console.error("Error logging run:", error);
         throw error;
     }
 };
@@ -20,9 +20,9 @@ export const logRun = async (newRun: NewRun): Promise<string> => {
 export const getUserRuns = async (userId: string): Promise<Run[]> => {
     try {
         const q = query(
-            collection(db, 'runs'),
-            where('userId', '==', userId),
-            orderBy('createdAt', 'desc')
+            collection(db, "runs"),
+            where("userId", "==", userId),
+            orderBy("createdAt", "desc")
         );
         const snapshot = await getDocs(q);
         return snapshot.docs.map(doc => ({
@@ -30,7 +30,7 @@ export const getUserRuns = async (userId: string): Promise<Run[]> => {
             ...doc.data(),
         } as Run));
         } catch (error) {
-            console.error('Error fetching user runs:', error);
+            console.error("Error fetching user runs:", error);
             throw error;
         }
 };

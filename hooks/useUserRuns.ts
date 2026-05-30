@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { subscribeToUserRuns } from '../services/runService';
-import { Run } from '../types/index';
+import { useState, useEffect } from "react";
+import { subscribeToUserRuns } from "../services/runService";
+import { Run } from "../types/index";
 
 export const useUserRuns = (userId: string | undefined) => {
     const [runs, setRuns] = useState<Run[]>([]);
@@ -14,6 +14,8 @@ export const useUserRuns = (userId: string | undefined) => {
             setError(null);
             return;
         }
+        setLoading(true);
+        setError(null);
 
         const unsubscribe = subscribeToUserRuns(
             userId,
@@ -22,7 +24,7 @@ export const useUserRuns = (userId: string | undefined) => {
                 setLoading(false);
             },
             (err) => {
-                setError(err.message || 'Failed to fetch runs');
+                setError(err.message || "Failed to fetch runs");
                 setLoading(false);
             }
         );

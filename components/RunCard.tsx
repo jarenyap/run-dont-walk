@@ -1,7 +1,7 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { Timestamp } from 'firebase/firestore';
-import { Run } from '../types';
-import { computePace } from '../utils/runUtils';
+import { View, Text, StyleSheet } from "react-native";
+import { Timestamp } from "firebase/firestore";
+import { Run } from "../types";
+import { computePace } from "../utils/runUtils";
 
 interface RunCardProps {
     run: Run;
@@ -11,17 +11,17 @@ interface RunCardProps {
 
 // Converts firestore timestamp to readable date string
 const formatDate = (timestamp: Timestamp | null | undefined): string => {
-    if (!timestamp) return '';
-    return timestamp.toDate().toLocaleDateString('en-SG', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
+    if (!timestamp) return "";
+    return timestamp.toDate().toLocaleString("en-SG", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
     });
 };
 
-export default function RunCard({ run, userName, _avatarUrl }: RunCardProps) {
+export default function RunCard({ run, userName }: RunCardProps) {
     const pace = computePace(run.duration, run.distance);
     const date = formatDate(run.createdAt);
 
@@ -60,9 +60,9 @@ export default function RunCard({ run, userName, _avatarUrl }: RunCardProps) {
 
 const styles = StyleSheet.create({
     card: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#81818130',
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#81818130",
         borderRadius: 12,
         padding: 12,
         marginBottom: 12,
@@ -72,54 +72,54 @@ const styles = StyleSheet.create({
         width: 56,
         height: 56,
         borderRadius: 28,
-        backgroundColor: '#FF8538',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: "#FF8538",
+        justifyContent: "center",
+        alignItems: "center",
     },
     avatarIcon: {
         fontSize: 32,
     },
     details: {
         flex: 1,
-        flexDirection: 'column',
-        alignItems: 'flex-start',
+        flexDirection: "column",
+        alignItems: "flex-start",
         gap: 4,
     },
     row: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        width: '100%',
+        flexDirection: "row",
+        alignItems: "center",
+        width: "100%",
         gap: 8,
     },
     title: {
         fontSize: 16,
-        fontWeight: '600',
-        color: '#000',
+        fontWeight: "600",
+        color: "#000",
         flexShrink: 1,
     },
     typeBadge: {
-        backgroundColor: '#FF8538',
+        backgroundColor: "#FF8538",
         borderRadius: 1,
         borderWidth: 0.5,
-        borderColor: '#2C2C2C',
+        borderColor: "#2C2C2C",
         paddingHorizontal: 6,
         paddingVertical: 1,
     },
     typeBadgeText: {
-        color: '#000000',
+        color: "#000000",
         paddingHorizontal: 6,
         paddingVertical: 2,
         fontSize: 15,
-        fontWeight: '600',
+        fontWeight: "600",
     },
     stats: {
         fontSize: 16,
-        color: '#000000',
-        width: '100%',
+        color: "#000000",
+        width: "100%",
     },
     meta: {
         fontSize: 14,
-        color: '#000000',
-        width: '100%',
+        color: "#000000",
+        width: "100%",
     },
 });

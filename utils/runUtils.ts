@@ -1,7 +1,7 @@
 export const computePace = (duration: string, distance: number): string => {
-    if (distance <= 0) return '--';
-    const parts = duration.split(':').map(Number);
-    if (parts.some(isNaN)) return '--';
+    if (distance <= 0) return "--";
+    const parts = duration.split(":").map(Number);
+    if (parts.some(isNaN)) return "--";
     let totalSeconds = 0;
 
     if (parts.length === 3) {
@@ -10,10 +10,10 @@ export const computePace = (duration: string, distance: number): string => {
         totalSeconds = parts[0] * 60 + parts[1];
     }
 
-    if (totalSeconds <= 0) return '--';
+    if (totalSeconds <= 0) return "--";
 
     const paceSeconds = totalSeconds / distance;
     const paceMin = Math.floor(paceSeconds / 60);
     const paceSec = Math.floor(paceSeconds % 60);
-    return `${paceMin}:${String(paceSec).padStart(2, '0')}/km`;
+    return `${paceMin}:${String(paceSec).padStart(2, "0")}/km`;
 };

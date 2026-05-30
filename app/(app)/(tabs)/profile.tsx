@@ -41,8 +41,8 @@ export default function ProfileScreen() {
             </View>
 
             {/* User Info */}
-            <Text style={styles.name}>{profile?.name ?? 'Runner'}</Text>
-            <Text style={styles.bio}>{profile?.bio ?? 'No bio yet'}</Text>
+            <Text style={styles.name}>{profile?.name ?? "Runner"}</Text>
+            <Text style={styles.bio}>{profile?.bio ?? "No bio yet"}</Text>
 
             {/* Achievements */}
             <Text style={styles.sectionTitle}>Achievements</Text>
@@ -75,7 +75,7 @@ export default function ProfileScreen() {
                     <RunCard
                         key={item.id}
                         run={item}
-                        userName={profile?.name ?? 'Runner'}
+                        userName={profile?.name ?? "Runner"}
                         avatarUrl={profile?.avatarUrl ?? null}
                     />
                 ))
@@ -94,7 +94,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1, 
-        backgroundColor: '#ffffff',
+        backgroundColor: "#ffffff",
     },
     content: {
         padding: 20,
@@ -102,85 +102,85 @@ const styles = StyleSheet.create({
         paddingBottom: 20,
     },
     avatarContainer: {
-        alignItems: 'center',
+        alignItems: "center",
         marginBottom: 5,
     },
     avatar: {
         width: 60,
         height: 60,
         borderRadius: 30,
-        backgroundColor: '#E8824A',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: "#E8824A",
+        justifyContent: "center",
+        alignItems: "center",
     },
     avatarIcon: {
         fontSize: 40,
     },
     name: {
         fontSize: 20,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        color: '#000000',
+        fontWeight: "bold",
+        textAlign: "center",
+        color: "#000000",
     },
     bio: {
         fontSize: 16,
-        textAlign: 'center',
-        color: '#666666',
+        textAlign: "center",
+        color: "#666666",
         marginTop: 4,
         marginBottom: 24,
         paddingHorizontal: 32,
-        fontStyle: 'italic',
+        fontStyle: "italic",
     },
     sectionTitle: {
         fontSize: 20,
-        fontWeight: '600',
-        fontStyle: 'italic',
-        color: '#000000',
+        fontWeight: "600",
+        fontStyle: "italic",
+        color: "#000000",
         marginBottom: 12,
         paddingHorizontal: 24,
     },
     achievementsRow: {
-        flexDirection: 'row',
+        flexDirection: "row",
         gap: 10,
         marginBottom: 24,
         paddingHorizontal: 4,
     },
     achievementCard: {
         flex: 1,
-        backgroundColor: '#84FF8D',
+        backgroundColor: "#84FF8D",
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: '#4DBF4D',
+        borderColor: "#4DBF4D",
         padding: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
+        alignItems: "center",
+        justifyContent: "center",
         aspectRatio: 1,
     },
     achievementValue: {
         fontSize: 18,
-        fontWeight: 'bold',
-        fontStyle: 'italic',
-        color: '#000000',
-        textAlign: 'center',
+        fontWeight: "bold",
+        fontStyle: "italic",
+        color: "#000000",
+        textAlign: "center",
     },
     achievementLabel: {
         fontSize: 16,
-        fontStyle: 'italic',
-        color: '#000000',
-        textAlign: 'center',
+        fontStyle: "italic",
+        color: "#000000",
+        textAlign: "center",
         marginTop: 4,
     },
     emptyText: {
-        color: '#888888',
-        textAlign: 'center',
+        color: "#888888",
+        textAlign: "center",
         marginTop: 20,
         marginBottom: 20,
         fontSize: 16,
         paddingHorizontal: 24,
     },
     errorText: {
-        color: '#FF4444',
-        textAlign: 'center',
+        color: "#FF4444",
+        textAlign: "center",
         marginTop: 20,
         marginBottom: 20,
         fontSize: 16,
