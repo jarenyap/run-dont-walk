@@ -10,6 +10,8 @@ export const useUserRuns = (userId: string | undefined) => {
     useEffect(() => {
         if (!userId) {
             setLoading(false);
+            setRuns([]);
+            setError(null);
             return;
         }
 

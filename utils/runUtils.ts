@@ -1,6 +1,7 @@
 export const computePace = (duration: string, distance: number): string => {
     if (distance <= 0) return '--';
     const parts = duration.split(':').map(Number);
+    if (parts.some(isNaN)) return '--';
     let totalSeconds = 0;
 
     if (parts.length === 3) {

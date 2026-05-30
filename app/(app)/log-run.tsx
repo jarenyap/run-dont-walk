@@ -30,6 +30,10 @@ export default function LogRun() {
         Number(distance) > 0;
 
     const handleSubmit = async () => {
+        if (!user) {
+            Alert.alert('Not Authenticated', 'Please log in to log a run.');
+            return;
+        }
         if (!isValid) {
             Alert.alert('Invalid Input', 'Please enter a valid distance in kilometers.');
             return;

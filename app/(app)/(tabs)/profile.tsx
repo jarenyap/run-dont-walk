@@ -1,11 +1,11 @@
-import { View, Text, Pressable, StyleSheet, FlatList, ScrollView, ActivityIndicator } from "react-native";
+import { View, Text, Pressable, StyleSheet, ScrollView, ActivityIndicator } from "react-native";
 import { useAuth } from "../../../context/Auth";
 import {useUserRuns} from "../../../hooks/useUserRuns";
 import RunCard from "../../../components/RunCard";
 import { computePace } from "../../../utils/runUtils";
 
 export default function ProfileScreen() {
-    const { user, profile, signOut } = useAuth();
+    const { profile, signOut } = useAuth();
     const { runs, loading, error } = useUserRuns(profile?.id);
 
     const totalDistance = runs.reduce((sum, r) => sum + r.distance, 0).toFixed(2);

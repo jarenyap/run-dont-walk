@@ -10,7 +10,7 @@ interface RunCardProps {
 }
 
 // Converts firestore timestamp to readable date string
-const formatDate = (timestamp: Timestamp): string => {
+const formatDate = (timestamp: Timestamp | null | undefined): string => {
     if (!timestamp) return '';
     return timestamp.toDate().toLocaleDateString('en-SG', {
         day: 'numeric',
@@ -21,7 +21,7 @@ const formatDate = (timestamp: Timestamp): string => {
     });
 };
 
-export default function RunCard({ run, userName, avatarUrl }: RunCardProps) {
+export default function RunCard({ run, userName, _avatarUrl }: RunCardProps) {
     const pace = computePace(run.duration, run.distance);
     const date = formatDate(run.createdAt);
 
