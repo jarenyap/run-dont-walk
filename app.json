@@ -2,7 +2,8 @@
   "expo": {
     "name": "Walk-Dont-Run",
     "slug": "Walk-Dont-Run",
-    "scheme": "Walk-Dont-Run",
+    "scheme": "walk-dont-run",
+    "privacy": "public",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,7 +23,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.plompy.WalkDontRun"
     },
     "web": {
       "bundler": "metro",
@@ -30,6 +32,19 @@
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "29a1b2cb-cd7d-420d-b182-a47272eeea20"
+      }
+    },
+    "owner": "plompy",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/29a1b2cb-cd7d-420d-b182-a47272eeea20"
+    }
   }
 }
