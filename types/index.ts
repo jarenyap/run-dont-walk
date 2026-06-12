@@ -1,6 +1,5 @@
 import { Timestamp, FieldValue } from "firebase/firestore";
 
-export type UserRole = "user" | "moderator" | "admin";
 export type RunType = "easy" | "tempo" | "long" | "race";
 export type NewRun = Omit<Run, "id" | "createdAt" | "likes" | "commentCount">;
 export type EventDifficulty = "easy" | "moderate" | "hard";
@@ -10,15 +9,16 @@ export type FollowRequestStatus = "pending" | "accepted" | "rejected";
 export interface UserProfile {
   id: string;
   name: string;
+  nameLower: string;
   email: string;
   bio: string;
   avatarUrl: string | null;
   totalDistance: number;
   totalRuns: number;
-  role: UserRole;
   followingIds: string[];
   followerIds: string[];
-  clanId: string | null;
+  followersCount: number;
+  clanIds: string[];
   createdAt: Timestamp | FieldValue;
 }
 

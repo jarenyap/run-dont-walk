@@ -54,15 +54,16 @@ const signUp = async (username: string, email: string, pass: string): Promise<vo
     await setDoc(doc(db, "users", user.uid), {
         id: user.uid,
         name: username,
+        nameLower: username.toLowerCase(),
         email: email,
         bio: "",
         avatarUrl: null,
         totalDistance: 0,
         totalRuns: 0,
-        role: "user",
         followingIds: [],
         followerIds: [],
-        clanId: null,
+        followersCount: 0,
+        clanIds: [],
         createdAt: serverTimestamp()
     });
 };
