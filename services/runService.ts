@@ -1,4 +1,5 @@
-import { collection, addDoc, query, where, orderBy, getDocs, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, query, where, orderBy, getDocs, onSnapshot,
+    serverTimestamp, doc, updateDoc, increment } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { NewRun, Run } from "../types";
 
@@ -10,6 +11,12 @@ export const logRun = async (newRun: NewRun): Promise<string> => {
             likes: [],
             commentCount: 0,
         });
+
+        await updateDoc(doc(db, "users", newRun.userId), {
+            totalRuns: increment(1),
+            totalDistance: increment(newRun.distance),
+        });
+
         return docRef.id;
     } catch (error) {
         console.error("Error logging run:", error);

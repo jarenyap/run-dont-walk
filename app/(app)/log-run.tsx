@@ -21,7 +21,7 @@ export default function LogRun() {
     const [selectedType, setSelectedType] = useState<RunType>("easy");
     const [notes, setNotes] = useState("");
     const [loading, setLoading] = useState(false);
-    const { user } = useAuth();
+    const { user, profile } = useAuth();
 
     const isValid = 
         title.trim() !== "" && 
@@ -42,6 +42,8 @@ export default function LogRun() {
         try {
             const newRun: NewRun = {
                 userId: user!.uid,
+                authorName: profile!.name,
+                authorAvatarUrl: profile!.avatarUrl,
                 title: title.trim(),
                 distance: Number(distance),
                 duration: `${hours || "0"}:${minutes.padStart(2, "0")}:${seconds.padStart(2, "0")}`,
@@ -113,7 +115,10 @@ export default function LogRun() {
                     <TextInput
                         style={[styles.input, styles.durationInput]}
                         value={minutes}
-                        onChangeText={setMinutes}
+                        onChangeText={ (text) => {
+                            const num = text.replace(/[^0-9]/g, "");
+                            if (num === "" || Number(num) <= 59) setMinutes(num);
+                        }}
                         placeholder="Mins"
                         placeholderTextColor="#999"
                         keyboardType="numeric"
@@ -123,7 +128,10 @@ export default function LogRun() {
                     <TextInput
                         style={[styles.input, styles.durationInput]}
                         value={seconds}
-                        onChangeText={setSeconds}
+                        onChangeText={ (text) => {
+                            const num = text.replace(/[^0-9]/g, "");
+                            if (num === "" || Number(num) <= 59) setSeconds(num);
+                        }}
                         placeholder="Secs"
                         placeholderTextColor="#999"
                         keyboardType="numeric"
