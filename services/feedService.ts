@@ -8,7 +8,8 @@ import { Run } from "../types/index";
 export function subscribeFeed(
     currentUserId: string,
     followingIds: string[],
-    onUpdate: (runs: Run[]) => void
+    onUpdate: (runs: Run[]) => void,
+    onError?: (err: Error) => void
 ): () => void {
 
     const feedIds = [currentUserId, ...followingIds];
@@ -26,5 +27,5 @@ export function subscribeFeed(
             ...(doc.data() as Omit<Run, "id">), 
         }));
         onUpdate(runs);
-    });
+    }, onError);
 }

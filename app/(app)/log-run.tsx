@@ -34,6 +34,10 @@ export default function LogRun() {
             Alert.alert("Not Authenticated", "Please log in to log a run.");
             return;
         }
+        if (!profile) {
+            Alert.alert("Profile Unavailable", "Your profile is still loading. Please try again.");
+            return;
+        }
         if (!isValid) {
             Alert.alert("Invalid Input", "Please enter a valid distance in kilometers.");
             return;
@@ -41,9 +45,9 @@ export default function LogRun() {
         setLoading(true);
         try {
             const newRun: NewRun = {
-                userId: user!.uid,
-                authorName: profile!.name,
-                authorAvatarUrl: profile!.avatarUrl,
+                userId: user.uid,
+                authorName: profile.name,
+                authorAvatarUrl: profile.avatarUrl,
                 title: title.trim(),
                 distance: Number(distance),
                 duration: `${hours || "0"}:${minutes.padStart(2, "0")}:${seconds.padStart(2, "0")}`,

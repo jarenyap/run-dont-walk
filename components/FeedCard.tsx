@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet, Touchable } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import UserAvatar from "./UserAvatar";
 import RunTypeBadge from "./RunTypeBadge";

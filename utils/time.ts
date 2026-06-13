@@ -1,6 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 
-export function formatRelativeTime(timestamp: Timestamp): string {
+export function formatRelativeTime(timestamp: Timestamp | null | undefined): string {
     if (!timestamp) return "just now";
 
     const now = Date.now();

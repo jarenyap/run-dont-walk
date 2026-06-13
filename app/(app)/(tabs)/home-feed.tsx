@@ -13,10 +13,19 @@ export default function HomeFeedScreen() {
     const [loading, setLoading]= useState(true);
 
     useEffect(() => {
-        if (!profile) return;
+        if (!profile) {
+            setFeedPosts([]);
+            setLoading(false);
+            return;
+        }
         const followingIds = profile?.followingIds ?? [];
         const unsubscribe = subscribeFeed(profile.id, followingIds, (runs) => {
             setFeedPosts(runs);
+            setLoading(false);
+        },
+        (err) => {
+            console.error("Feed listner error:", err);
+            setFeedPosts([]);
             setLoading(false);
         });
         return unsubscribe;

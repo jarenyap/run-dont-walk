@@ -32,6 +32,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
             }
 
             if (firebaseUser) {
+                setLoading(true);
                 unsubscribeProfile = onSnapshot(
                     doc(db, "users", firebaseUser.uid),
                     (snap) => {
