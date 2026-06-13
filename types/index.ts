@@ -10,6 +10,7 @@ export type FollowRequestStatus = "pending" | "accepted" | "rejected";
 export interface UserProfile {
   id: string;
   name: string;
+  displayName: string;
   email: string;
   bio: string;
   avatarUrl: string | null;

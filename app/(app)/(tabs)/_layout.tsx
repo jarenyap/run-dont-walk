@@ -1,5 +1,5 @@
 import { Tabs, router } from "expo-router";
-import { HouseIcon, SneakerMoveIcon, CastleTurretIcon, CalendarBlankIcon, UserCircleIcon } from 'phosphor-react-native';
+import { HouseIcon, SneakerMoveIcon, CastleTurretIcon, CalendarBlankIcon, UserCircleIcon } from "phosphor-react-native";
 
 export default function TabLayout() {
     return (
@@ -14,21 +14,21 @@ export default function TabLayout() {
             name="home-feed"
             options={{
                 title: "Home",
-                tabBarIcon: ({ color }) => <HouseIcon color={color} size={24} />,
+                tabBarIcon: ({ color }) => <HouseIcon color={color as string} size={24} />,
             }}
         />
         <Tabs.Screen
             name="events"
             options={{
                 title: "Events",
-                tabBarIcon: ({ color }) => <CalendarBlankIcon color={color} size={24} />,
+                tabBarIcon: ({ color }) => <CalendarBlankIcon color={color as string} size={24} />,
             }}
         />
         <Tabs.Screen
             name="log-run-dummy"
             options={{
                 title: "Log Run",
-                tabBarIcon: ({ color }) => <SneakerMoveIcon color={color} size={24} />,
+                tabBarIcon: ({ color }) => <SneakerMoveIcon color={color as string} size={24} />,
             }}
             listeners={{
                 tabPress: (e) => {
@@ -41,14 +41,14 @@ export default function TabLayout() {
             name="clan"
             options={{
                 title: "Clan",
-                tabBarIcon: ({ color }) => <CastleTurretIcon color={color} size={24} />,
+                tabBarIcon: ({ color }) => <CastleTurretIcon color={color as string} size={24} />,
             }}
         />
         <Tabs.Screen
             name="profile"
             options={{
                 title: "Profile",
-                tabBarIcon: ({ color }) => <UserCircleIcon color={color} size={24} />,
+                tabBarIcon: ({ color }) => <UserCircleIcon color={color as string} size={24} />,
             }}
         />
     </Tabs>

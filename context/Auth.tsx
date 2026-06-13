@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, PropsWithChildren } from "react";
 import { User, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as FBsignOut, updateProfile } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 import { UserProfile } from "../types/index";
 
@@ -21,27 +21,41 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        let unsubscribeProfile: () => void;
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             try {
                  setUser(firebaseUser);
                  if (firebaseUser) {
-                     const profileDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-                     if (profileDoc.exists()) {
-                         setProfile(profileDoc.data() as UserProfile);
+                     unsubscribeProfile = onSnapshot(doc(db, "users", firebaseUser.uid), (profileSS) => {
+                     if (profileSS.exists()) {
+                         setProfile(profileSS.data() as UserProfile);
                      } else {
                          setProfile(null);
                      }
-                 } else {
-                     setProfile(null);
-                 }
-                } catch {
+                     setLoading(false);
+                    });
+                } else {
+                    if (unsubscribeProfile) {
+                        unsubscribeProfile();
+                    }
                     setProfile(null);
-             } finally {
-                 setLoading(false);
-             }
-    });
+                    setLoading(false);
+                } 
+            } catch {
+                if (unsubscribeProfile) {
+                    unsubscribeProfile();
+                }
+                setProfile(null);
+                setLoading(false);
+            }
+        });
                 
-    return unsubscribe;
+    return () => {
+        unsubscribe();
+        if (unsubscribeProfile) {
+            unsubscribeProfile();
+        }
+    };
 }, []);
 
 const signIn = async (email: string, pass: string): Promise<void> => {
@@ -54,6 +68,7 @@ const signUp = async (username: string, email: string, pass: string): Promise<vo
     await setDoc(doc(db, "users", user.uid), {
         id: user.uid,
         name: username,
+        displayName: username.toLowerCase(),
         email: email,
         bio: "",
         avatarUrl: null,

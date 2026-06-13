@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Image } from "react-native";
 import { Timestamp } from "firebase/firestore";
 import { Run } from "../types";
 import { computePace } from "../utils/runUtils";
@@ -21,7 +21,7 @@ const formatDate = (timestamp: Timestamp | null | undefined): string => {
     });
 };
 
-export default function RunCard({ run, userName }: RunCardProps) {
+export default function RunCard({ run, userName, avatarUrl }: RunCardProps) {
     const pace = computePace(run.duration, run.distance);
     const date = formatDate(run.createdAt);
 
@@ -29,7 +29,12 @@ export default function RunCard({ run, userName }: RunCardProps) {
         <View style={styles.card}>
             {/* Avatar */}
             <View style={styles.avatar}>
-                <Text style={styles.avatarIcon}>👤</Text>
+                {avatarUrl ? (
+                    <Image source={{ uri: avatarUrl }} 
+                    style={styles.avatar} />
+                ) : (
+                    <Text style={styles.avatarIcon}>👤</Text>
+                )}
             </View>
 
             {/* Run Details */}
