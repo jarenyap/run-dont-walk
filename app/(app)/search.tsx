@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { router } from "expo-router";
 
 const styles = StyleSheet.create({
     title: {
@@ -13,9 +14,12 @@ const styles = StyleSheet.create({
 
 export default function SearchScreen() {
     return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
             <Text style={styles.title}> Search Screen</Text>
             <Text style={styles.subtitle}> Coming Soon! Stay Tuned! :)</Text>
-        </View>
+            <TouchableOpacity onPress={() => router.push("/(app)/(tabs)/home-feed")}>
+                <Text style={{ color: "#FF6B35", marginTop: 20, fontSize: 16 }}>Back to Home</Text>
+            </TouchableOpacity>
+         </View>
     );
 }

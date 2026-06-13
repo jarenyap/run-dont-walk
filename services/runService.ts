@@ -1,16 +1,28 @@
-import { collection, addDoc, query, where, orderBy, getDocs, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { collection, doc, query, where, orderBy, getDocs, onSnapshot,
+    serverTimestamp, increment, writeBatch } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { NewRun, Run } from "../types";
 
 export const logRun = async (newRun: NewRun): Promise<string> => {
     try {
-        const docRef = await addDoc(collection(db, "runs"), {
+        const batch = writeBatch(db);
+
+        const runRef = doc(collection(db, "runs"));
+        batch.set(runRef, {
             ...newRun,
             createdAt: serverTimestamp(),
             likes: [],
             commentCount: 0,
         });
-        return docRef.id;
+
+        const userRef = doc(db, "users", newRun.userId);
+        batch.update(userRef, {
+            totalRuns: increment(1),
+            totalDistance: increment(newRun.distance),
+        });
+
+        await batch.commit();
+        return runRef.id;
     } catch (error) {
         console.error("Error logging run:", error);
         throw error;

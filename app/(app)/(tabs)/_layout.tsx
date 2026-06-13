@@ -7,28 +7,33 @@ export default function TabLayout() {
             tabBarActiveTintColor: '#5F19FF',
             tabBarInactiveTintColor: '#8E8E93',
             tabBarStyle: { backgroundColor: '#F9F9F9' },
-            headerShown: false,
         }}
         >
         <Tabs.Screen
             name="home-feed"
             options={{
-                title: "Home",
-                tabBarIcon: ({ color }) => <HouseIcon color={color as string} size={24} />,
+                title: "Walk Don't Run",
+                tabBarLabel: "Home",
+                headerTitleStyle: { fontWeight: "700", fontSize: 20},
+                headerStyle: { backgroundColor: "#F2F2F7" },
+                headerShadowVisible: false,
+                tabBarIcon: ({ color }) => <HouseIcon color={typeof color === "string" ? color : "#8E8E93"} size={24} />,
             }}
         />
         <Tabs.Screen
             name="events"
             options={{
                 title: "Events",
-                tabBarIcon: ({ color }) => <CalendarBlankIcon color={color as string} size={24} />,
+                headerShown: false,
+                tabBarIcon: ({ color }) => <CalendarBlankIcon color={typeof color === "string" ? color : "#8E8E93"} size={24} />,
             }}
         />
         <Tabs.Screen
             name="log-run-dummy"
             options={{
                 title: "Log Run",
-                tabBarIcon: ({ color }) => <SneakerMoveIcon color={color as string} size={24} />,
+                headerShown: false,
+                tabBarIcon: ({ color }) => <SneakerMoveIcon color={typeof color === "string" ? color : "#8E8E93"} size={24} />,
             }}
             listeners={{
                 tabPress: (e) => {
@@ -41,14 +46,16 @@ export default function TabLayout() {
             name="clan"
             options={{
                 title: "Clan",
-                tabBarIcon: ({ color }) => <CastleTurretIcon color={color as string} size={24} />,
+                headerShown: false,
+                tabBarIcon: ({ color }) => <CastleTurretIcon color={typeof color === "string" ? color : "#8E8E93"} size={24} />,
             }}
         />
         <Tabs.Screen
             name="profile"
             options={{
                 title: "Profile",
-                tabBarIcon: ({ color }) => <UserCircleIcon color={color as string} size={24} />,
+                headerShown: false,
+                tabBarIcon: ({ color }) => <UserCircleIcon color={typeof color === "string" ? color : "#8E8E93"} size={24} />,
             }}
         />
     </Tabs>
