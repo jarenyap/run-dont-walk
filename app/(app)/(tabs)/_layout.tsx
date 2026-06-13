@@ -7,13 +7,16 @@ export default function TabLayout() {
             tabBarActiveTintColor: '#5F19FF',
             tabBarInactiveTintColor: '#8E8E93',
             tabBarStyle: { backgroundColor: '#F9F9F9' },
-            headerShown: false,
         }}
         >
         <Tabs.Screen
             name="home-feed"
             options={{
-                title: "Home",
+                title: "Walk Don't Run",
+                tabBarLabel: "Home",
+                headerTitleStyle: { fontWeight: "700", fontSize: 20},
+                headerStyle: { backgroundColor: "#F2F2F7" },
+                headerShadowVisible: false,
                 tabBarIcon: ({ color }) => <HouseIcon color={color} size={24} />,
             }}
         />
@@ -21,6 +24,7 @@ export default function TabLayout() {
             name="events"
             options={{
                 title: "Events",
+                headerShown: false,
                 tabBarIcon: ({ color }) => <CalendarBlankIcon color={color} size={24} />,
             }}
         />
@@ -28,6 +32,7 @@ export default function TabLayout() {
             name="log-run-dummy"
             options={{
                 title: "Log Run",
+                headerShown: false,
                 tabBarIcon: ({ color }) => <SneakerMoveIcon color={color} size={24} />,
             }}
             listeners={{
@@ -41,6 +46,7 @@ export default function TabLayout() {
             name="clan"
             options={{
                 title: "Clan",
+                headerShown: false,
                 tabBarIcon: ({ color }) => <CastleTurretIcon color={color} size={24} />,
             }}
         />
@@ -48,6 +54,7 @@ export default function TabLayout() {
             name="profile"
             options={{
                 title: "Profile",
+                headerShown: false,
                 tabBarIcon: ({ color }) => <UserCircleIcon color={color} size={24} />,
             }}
         />

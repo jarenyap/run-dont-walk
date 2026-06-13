@@ -25,6 +25,8 @@ export interface UserProfile {
 export interface Run {
   id: string;
   userId: string;
+  authorName: string;
+  authorAvatarUrl: string | null;
   title: string;
   distance: number;       // in km
   duration: string;       // HH:MM:SS
