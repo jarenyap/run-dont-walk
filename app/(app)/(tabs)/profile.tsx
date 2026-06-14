@@ -6,6 +6,9 @@ import RunCard from "../../../components/RunCard";
 import { computePace } from "../../../utils/runUtils";
 import * as ImagePicker from "expo-image-picker";
 import { uploadAvatar, updateUserProfile } from "../../../services/userService";
+import { EmailAuthProvider, reauthenticateWithCredential, updateEmail, updatePassword } from "firebase/auth";
+import { auth } from "../../../firebaseConfig";
+import { validateEmail, validatePassword } from "../../../utils/validation";
 
 export default function ProfileScreen() {
     const { profile, signOut } = useAuth();
@@ -15,6 +18,10 @@ export default function ProfileScreen() {
     const [editName, setEditName] = useState(profile?.name || "");
     const [editBio, setEditBio] = useState(profile?.bio || "");
     const [imageURI, setImageURI] = useState<string | null>(profile?.avatarUrl || null);
+    const [emailEdit, setEmailEdit] = useState(profile?.email || "");
+    const [oldPassword, setOldPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [isSaving, setIsSaving] = useState(false);
 
     const totalDistance = runs.reduce((sum, r) => sum + r.distance, 0).toFixed(2);
@@ -40,13 +47,18 @@ export default function ProfileScreen() {
         setEditName(profile?.name ?? "");
         setEditBio(profile?.bio ?? "");
         setImageURI(profile?.avatarUrl ?? null);
+        setEmailEdit(profile?.email || "");
+        setOldPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
         setEditModeVisibility(true);
      }
 
     const selectImage = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status != "granted") {
-            Alert.alert("Permission Needed", 
+        if (status !== "granted") {
+            Alert.alert(
+                "Permission Needed", 
                 "Please enable camera roll permissions in your device settings.");
         }
 
@@ -63,14 +75,44 @@ export default function ProfileScreen() {
     };
 
     const handleSaveChanges = async () => {
-        if (!profile) return;
+        if (!profile || !auth.currentUser) return;
         const trimmed = editName.trim();
         if (!trimmed) {
             return Alert.alert("Invalid Name", "Name cannot be empty.");
         }
+        const trimmedEmail = emailEdit.trim();
+        const changingEmail = trimmedEmail !== profile.email;
+        const changingPass = newPassword.length > 0;
+
+        if (changingEmail && !validateEmail(trimmedEmail)) {
+            return Alert.alert("Invalid Email", "Please enter a valid email address.");
+        }
+        if (changingPass) {
+            const pwdError = validatePassword(newPassword);
+            if (pwdError) {
+                return Alert.alert("Invalid Password", pwdError);
+            }
+            if (newPassword !== confirmPassword) {
+                return Alert.alert("Password Mismatch", "New passwords do not match.");
+            }
+        }
 
         setIsSaving(true);
         try {
+            if (changingEmail || changingPass) {
+                if (!oldPassword) {
+                    setIsSaving(false);
+                    return Alert.alert("Authentication Required", "Please enter your current password to change email or password.");
+                }
+                const credential = EmailAuthProvider.credential(profile.email, oldPassword);
+                await reauthenticateWithCredential(auth.currentUser, credential);
+                if (changingEmail) {
+                    await updateEmail(auth.currentUser, trimmedEmail);
+                }
+                if (changingPass) {
+                    await updatePassword(auth.currentUser, newPassword);
+                }
+            }
             let finalAvatar = profile.avatarUrl;
             if (imageURI && imageURI != profile.avatarUrl) {
                 finalAvatar = await uploadAvatar(profile.id, imageURI);
@@ -78,12 +120,22 @@ export default function ProfileScreen() {
             await updateUserProfile(profile.id, {
                 name: trimmed,
                 bio: editBio.trim(),
-                avatarUrl: finalAvatar ?? undefined
+                avatarUrl: finalAvatar ?? undefined,
+                ...(changingEmail && { email: trimmedEmail })
             });
             setEditModeVisibility(false);
-        } catch (e) {
-            Alert.alert("Error", "Failed to save changes.");
+            setOldPassword("");
+            setNewPassword("");
+            setConfirmPassword("");
+            Alert.alert("Success!", "Profile updated successfully.");
+        } catch (e: any) {
             console.error(e);
+            if (e.code === "auth/wrong-password" || e.code === "auth/invalid-credential") {
+                Alert.alert("Error", "Password incorrect.");
+            } else {
+                Alert.alert("Error", "Failed to update profile. Please try again.");
+            }
+
         } finally {
             setIsSaving(false);
         }
@@ -162,7 +214,12 @@ export default function ProfileScreen() {
 
             {/* Edit Profile Modal */}
             <Modal visible={EditModeVisibility} animationType="slide" presentationStyle="pageSheet">
-                <View style={styles.modalContainer}>
+                <ScrollView
+                    style={{ backgroundColor: "#fff" }}
+                    contentContainerStyle={styles.modalContainer}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                >                   
                     <Text style={styles.modalTitle}>Edit Profile</Text>
                     <Pressable onPress={selectImage} style={styles.imagePickerButton}>
                         {imageURI || profile?.avatarUrl ? (
@@ -192,15 +249,51 @@ export default function ProfileScreen() {
                         placeholderTextColor="#999"
                         multiline
                     />
+                    <View style={{ height: 1, backgroundColor: "eee", marginVertical: 16 }} />
+                    <Text style={[styles.sectionTitle, { paddingHorizontal: 0 }]}>Change Email / Password</Text>
+                    <Text style={styles.label}>Email</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={emailEdit}
+                        onChangeText={setEmailEdit}
+                        placeholder="Email"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                    />
+                    <Text style={styles.label}>Current Password</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={oldPassword}
+                        onChangeText={setOldPassword}
+                        placeholder="Current Password"
+                        secureTextEntry
+                    />
+                    <Text style={styles.label}>New Password</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={newPassword}
+                        onChangeText={setNewPassword}
+                        placeholder="New Password"
+                        secureTextEntry
+                    />
                     <View style={styles.modalActions}>
-                        <Pressable style={styles.cancelButton} onPress={() => setEditModeVisibility(false)}>
+                        <Pressable style={styles.cancelButton} onPress={() => {
+                            setEditName(profile?.name ?? ""); 
+                            setEditBio(profile?.bio ?? ""); 
+                            setImageURI(profile?.avatarUrl ?? null); 
+                            setEmailEdit(profile?.email || "");
+                            setOldPassword("");
+                            setNewPassword("");
+                            setConfirmPassword("");
+                            setEditModeVisibility(false); 
+                            }}>
                             <Text style={styles.cancelButtonText}>Cancel</Text>
                         </Pressable>
                         <Pressable style={styles.saveButton} onPress={handleSaveChanges} disabled={isSaving}>
                             {isSaving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Save</Text>}
                         </Pressable>
                     </View>
-                </View>
+                </ScrollView>
             </Modal>
 
         </ScrollView>
@@ -328,10 +421,10 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     modalContainer: {
-        flex: 1,
         padding: 24,
         backgroundColor: "#fff",
-        paddingTop: 50
+        paddingTop: 50,
+        paddingBottom: 40
     },
     modalTitle: {
         fontSize: 24,

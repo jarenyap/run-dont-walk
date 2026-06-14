@@ -6,9 +6,6 @@ import { isFirestoreError } from "../utils/firestoreErrors";
 
 export const uploadAvatar = async (userId: string, imageURI: string): Promise<string> => {
     try {
-        const base64 = await FileSystem.readAsStringAsync(imageURI, {
-            encoding: FileSystem.EncodingType.Base64
-        });
         const imageBlob: Blob = await new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.onload = function () {
@@ -23,17 +20,13 @@ export const uploadAvatar = async (userId: string, imageURI: string): Promise<st
             xhr.send(null);
         });
 
-        console.log("1. User ID:", userId);
-        console.log("2. Image URI:", imageURI);
-        console.log("3. Blob Size:", imageBlob.size, "bytes");
-        
         const firebaseRef = ref(storage, `profilePics/${userId}.jpg`);
         const metadata = {
             contentType: "image/jpeg",
         }
         await uploadBytes(firebaseRef, imageBlob, metadata);
-        // @ts-expect-error
-        imageBlob.close();
+
+        (imageBlob as any).close?.();
         return await getDownloadURL(firebaseRef);
     } catch (e) {
         console.error("Image upload failed: ", e);
@@ -49,9 +42,14 @@ export const updateUserProfile = async (
     updates: { name?: string; bio?: string; avatarUrl?: string }
 ) => {
     const userDoc = doc(db, "users", userId);
-    const finalUpdates: any = { ...updates };
+    const finalUpdates: {
+        name?: string;
+        nameLower?: string;
+        bio?: string;
+        avatarUrl?: string | null;
+    } = { ...updates };
     if (updates.name) {
-        finalUpdates.displayName = updates.name.toLowerCase();
+        finalUpdates.nameLower = updates.name.toLowerCase();
     }
     if (finalUpdates.avatarUrl === undefined) {
         delete finalUpdates.avatarUrl;

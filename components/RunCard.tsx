@@ -28,14 +28,14 @@ export default function RunCard({ run, userName, avatarUrl }: RunCardProps) {
     return (
         <View style={styles.card}>
             {/* Avatar */}
-            <View style={styles.avatar}>
                 {avatarUrl ? (
                     <Image source={{ uri: avatarUrl }} 
                     style={styles.avatar} />
                 ) : (
+                <View style={styles.avatar}>
                     <Text style={styles.avatarIcon}>👤</Text>
+                </View>
                 )}
-            </View>
 
             {/* Run Details */}
             <View style={styles.details}>
