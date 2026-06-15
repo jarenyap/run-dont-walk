@@ -3,28 +3,13 @@ import { View, Text, TextInput, Pressable, StyleSheet, Alert } from "react-nativ
 import { router } from "expo-router";
 import { useAuth } from "../context/Auth";
 import { getAuthErrorMessage } from "../utils/authErrors";
+import { validateEmail, validatePassword } from "../utils/validation";
 
 export default function SignUp() {
     const { signUp } = useAuth();
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [pass, setPass] = useState("");
-
-    const validatePassword = (pwd: string) => {
-        if (pwd.length < 6) {
-            return "Password must be at least 6 characters.";
-        }
-        if (!/[A-Z]/.test(pwd)) {
-            return "Password must contain at least one uppercase letter.";
-        }
-        if (!/[0-9]/.test(pwd)) {
-            return "Password must contain at least one number.";
-        }
-        if (!/[!@#$%^&*]/.test(pwd)) {
-            return "Password must contain a special character (!@#$%^&*).";
-        }
-        return null;
-    };
 
     const handleSignUp = async () => {
         const trimmedName = name.trim();
@@ -35,6 +20,10 @@ export default function SignUp() {
         }
         if (!trimmedEmail) {
             Alert.alert("Invalid Email", "Email is required.");
+            return;
+        }
+        if (!validateEmail(trimmedEmail)) {
+            Alert.alert("Invalid Email", "Please enter a valid email address.");
             return;
         }
         const pwdError = validatePassword(pass);

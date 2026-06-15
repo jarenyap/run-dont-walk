@@ -4,10 +4,15 @@ import UserAvatar from "./UserAvatar";
 import RunTypeBadge from "./RunTypeBadge";
 import { Run } from "../types/index";
 import {formatRelativeTime} from "../utils/time";
+import { useAuth } from "../context/Auth";
 
 type Props = { run: Run };
 
 export default function FeedCard({ run }: Props) {
+    const { user, profile } = useAuth();
+    const isMine = user?.uid === run.userId;
+    const displayAvatar = isMine ? (profile?.avatarUrl ?? null)  : (run.authorAvatarUrl ?? null);
+    const displayName = isMine ? profile?.name || user?.displayName || "Runner" : run.authorName || "Unknown";
     return (
         <TouchableOpacity
             style={styles.card}
@@ -15,9 +20,9 @@ export default function FeedCard({ run }: Props) {
             activeOpacity={0.8}
         >
             <View style={styles.header}>
-                <UserAvatar uri={run.authorAvatarUrl} size={40} name={run.authorName} />
+                <UserAvatar uri={displayAvatar} size={40} name={displayName} />
                 <View style={styles.headerText}>
-                    <Text style={styles.name}>{run.authorName}</Text>
+                    <Text style={styles.name}>{displayName}</Text>
                     <RunTypeBadge type={run.type} />
                 </View>
                 <Text style={styles.timestamp}>{formatRelativeTime(run.createdAt)}</Text>
