@@ -276,6 +276,14 @@ export default function ProfileScreen() {
                         placeholder="New Password"
                         secureTextEntry
                     />
+                    <Text style={styles.label}>Confirm New Password</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={confirmPassword}
+                        onChangeText={setConfirmPassword}
+                        placeholder="Confirm New Password"
+                        secureTextEntry
+                    />
                     <View style={styles.modalActions}>
                         <Pressable style={styles.cancelButton} onPress={() => {
                             setEditName(profile?.name ?? ""); 
