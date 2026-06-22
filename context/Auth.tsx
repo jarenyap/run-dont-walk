@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, PropsWithChildren } from "react";
-import { User, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as FBsignOut, updateProfile } from "firebase/auth";
-import { doc, onSnapshot, setDoc, serverTimestamp } from "firebase/firestore";
+import { User, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as FBsignOut, updateProfile, Auth } from "firebase/auth";
+import { doc, onSnapshot, setDoc, serverTimestamp, Firestore } from "firebase/firestore";
 import { auth, db } from "../firebaseConfig";
 import { UserProfile } from "../types/index";
 

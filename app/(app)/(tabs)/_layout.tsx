@@ -1,5 +1,5 @@
 import { Tabs, router } from "expo-router";
-import { HouseIcon, SneakerMoveIcon, CastleTurretIcon, CalendarBlankIcon, UserCircleIcon } from 'phosphor-react-native';
+import { HouseIcon, SneakerMoveIcon, CastleTurretIcon, CalendarBlankIcon, UserCircleIcon } from "phosphor-react-native";
 
 export default function TabLayout() {
     return (
@@ -17,7 +17,7 @@ export default function TabLayout() {
                 headerTitleStyle: { fontWeight: "700", fontSize: 20},
                 headerStyle: { backgroundColor: "#F2F2F7" },
                 headerShadowVisible: false,
-                tabBarIcon: ({ color }) => <HouseIcon color={color} size={24} />,
+                tabBarIcon: ({ color }) => <HouseIcon color={typeof color === "string" ? color : "#8E8E93"} size={24} />,
             }}
         />
         <Tabs.Screen
@@ -25,7 +25,7 @@ export default function TabLayout() {
             options={{
                 title: "Events",
                 headerShown: false,
-                tabBarIcon: ({ color }) => <CalendarBlankIcon color={color} size={24} />,
+                tabBarIcon: ({ color }) => <CalendarBlankIcon color={typeof color === "string" ? color : "#8E8E93"} size={24} />,
             }}
         />
         <Tabs.Screen
@@ -33,7 +33,7 @@ export default function TabLayout() {
             options={{
                 title: "Log Run",
                 headerShown: false,
-                tabBarIcon: ({ color }) => <SneakerMoveIcon color={color} size={24} />,
+                tabBarIcon: ({ color }) => <SneakerMoveIcon color={typeof color === "string" ? color : "#8E8E93"} size={24} />,
             }}
             listeners={{
                 tabPress: (e) => {
@@ -47,7 +47,7 @@ export default function TabLayout() {
             options={{
                 title: "Clan",
                 headerShown: false,
-                tabBarIcon: ({ color }) => <CastleTurretIcon color={color} size={24} />,
+                tabBarIcon: ({ color }) => <CastleTurretIcon color={typeof color === "string" ? color : "#8E8E93"} size={24} />,
             }}
         />
         <Tabs.Screen
@@ -55,7 +55,7 @@ export default function TabLayout() {
             options={{
                 title: "Profile",
                 headerShown: false,
-                tabBarIcon: ({ color }) => <UserCircleIcon color={color} size={24} />,
+                tabBarIcon: ({ color }) => <UserCircleIcon color={typeof color === "string" ? color : "#8E8E93"} size={24} />,
             }}
         />
     </Tabs>
