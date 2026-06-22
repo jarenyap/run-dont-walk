@@ -31,6 +31,19 @@ export default function AppLayout() {
                     headerShown: true,
                 }}
             />
+            <Stack.Screen
+                name="search"
+                options={{
+                    headerShown: true,
+                    headerBackButtonDisplayMode: "minimal",
+                 }}
+            />
+            <Stack.Screen
+                name="user/[id]"
+                options={{
+                    headerShown: false,
+                }}
+            />
         </Stack>
     );
 }
