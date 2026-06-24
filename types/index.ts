@@ -40,7 +40,9 @@ export interface Run {
 export interface Comment {
   id: string;
   runId: string;
-  userId: string;
+  authorUid: string;
+  authorName: string;
+  authorAvatarUrl: string | null;
   text: string;
   createdAt: Timestamp;
 }

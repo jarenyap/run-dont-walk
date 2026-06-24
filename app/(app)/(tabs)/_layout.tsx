@@ -16,7 +16,7 @@ export default function TabLayout() {
                 tabBarLabel: "Home",
                 headerTitleStyle: { fontWeight: "700", fontSize: 20},
                 headerStyle: { backgroundColor: "#F2F2F7" },
-                headerShadowVisible: false,
+                headerShadowVisible: false as boolean,
                 tabBarIcon: ({ color }) => <HouseIcon color={typeof color === "string" ? color : "#8E8E93"} size={24} />,
             }}
         />
