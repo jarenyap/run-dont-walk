@@ -123,7 +123,7 @@ export default function RunDetailScreen() {
     return (
         <KeyboardAvoidingView
             style={styles.screen}
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
             keyboardVerticalOffset={90}
         >
             <FlatList
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     listContent: {
         padding: 16,
         paddingTop: 16,
-        paddingBottom: 140,
+        paddingBottom: 16,
     },
     headerCard: {
         backgroundColor: '#F5F5F0',
@@ -400,10 +400,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     inputBar: {
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        bottom: 0,
         flexDirection: 'row',
         alignItems: 'center',
         gap: 10,
