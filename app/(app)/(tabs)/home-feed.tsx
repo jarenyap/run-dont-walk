@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { FlatList, View, ActivityIndicator, StyleSheet } from "react-native";
-import { Stack } from "expo-router";
+import { FlatList, View, ActivityIndicator, StyleSheet, TouchableOpacity } from "react-native";
+import { Stack, router } from "expo-router";
 import { useAuth } from "../../../context/Auth";
 import { subscribeFeed } from "../../../services/feedService";
 import FeedCard from "../../../components/FeedCard";
 import EmptyFeed from "../../../components/EmptyFeed";
 import { Run } from "../../../types/index";
+import { MagnifyingGlassIcon } from "phosphor-react-native";
 
 export default function HomeFeedScreen() {
     const { profile } = useAuth();
@@ -31,6 +32,16 @@ export default function HomeFeedScreen() {
         return unsubscribe;
     }, [profile?.followingIds, profile?.id]);
 
+    const searchButton = (
+        <TouchableOpacity
+            onPress={() => router.push("/(app)/search")}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={{ marginRight: 20}}
+        >
+            <MagnifyingGlassIcon size={24} color="#FF6B35" />
+        </TouchableOpacity>
+    );
+
     if (loading) {
         return (
             <>
@@ -40,6 +51,7 @@ export default function HomeFeedScreen() {
                     headerTitleStyle: { fontWeight: "700" },
                     headerStyle: { backgroundColor: "#F2F2F7" },
                     headerShadowVisible: false,
+                    headerRight: () => searchButton,
         }} />
         <View style={styles.centered}>
           <ActivityIndicator color="#FF8538" size="large" />
@@ -56,6 +68,7 @@ export default function HomeFeedScreen() {
                 headerTitleStyle: { fontWeight: "700" },
                 headerStyle: { backgroundColor: "#F2F2F7" },
                     headerShadowVisible: false,
+                    headerRight: () => searchButton,
             }} />
             <FlatList
                 data={feedPosts}
