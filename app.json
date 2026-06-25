@@ -3,7 +3,6 @@
     "name": "Walk-Dont-Run",
     "slug": "Walk-Dont-Run",
     "scheme": "walk-dont-run",
-    "privacy": "public",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -31,8 +30,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router",
-      "expo-status-bar"
+      "expo-router"
     ],
     "extra": {
       "router": {},

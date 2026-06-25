@@ -44,6 +44,17 @@ export default function AppLayout() {
                     headerShown: false,
                 }}
             />
+            <Stack.Screen
+                name="run/[id]"
+                options={{
+                    title: "Run Details",
+                    headerShown: true,
+                    headerBackButtonDisplayMode: "minimal",
+                    headerStyle: { backgroundColor: "#fff" },
+                    headerTitleStyle: { fontWeight: "700", color: "#1A1A1A" },
+                    headerTintColor: "#1A1A1A",
+                }}
+            />
         </Stack>
     );
 }
