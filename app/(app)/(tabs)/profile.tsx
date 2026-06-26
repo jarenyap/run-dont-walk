@@ -9,6 +9,7 @@ import { uploadAvatar, updateUserProfile } from "../../../services/userService";
 import { EmailAuthProvider, reauthenticateWithCredential, updateEmail, updatePassword } from "firebase/auth";
 import { auth } from "../../../firebaseConfig";
 import { validateEmail, validatePassword } from "../../../utils/validation";
+import StatsDashboard from "../../../components/StatsDashboard";
 
 export default function ProfileScreen() {
     const { profile, signOut } = useAuth();
@@ -23,6 +24,7 @@ export default function ProfileScreen() {
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [isSaving, setIsSaving] = useState(false);
+    const [activeTab, setActiveTab] = useState<"none" | "history" | "stats">("none");
 
     const totalDistance = runs.reduce((sum, r) => sum + r.distance, 0).toFixed(2);
     const bestPace = runs.length === 0 ? '--' : runs.reduce((best,r) => {
@@ -169,42 +171,71 @@ export default function ProfileScreen() {
             {/* User Info */}
             <Text style={styles.name}>{profile?.name || "Runner"}</Text>
             <Text style={styles.bio}>{profile?.bio || "Add a bio!"}</Text>
-
-            {/* Achievements */}
-            <Text style={styles.sectionTitle}>Achievements</Text>
-            <View style={styles.achievementsRow}>
-                <View style={styles.achievementCard}>
-                    <Text style={styles.achievementValue}>{runs.length}</Text>
-                    <Text style={styles.achievementLabel}>Runs{'\n'}Logged</Text>
-                </View>
-                <View style={styles.achievementCard}>
-                    <Text style={styles.achievementValue}>{totalDistance}km</Text>
-                    <Text style={styles.achievementLabel}>Ran</Text>
-                </View>
-                <View style={styles.achievementCard}>
-                    <Text style={styles.achievementValue}>{bestPace}</Text>
-                    <Text style={styles.achievementLabel}>Fastest{'\n'}Pace</Text>
-                </View>
+            
+            {/* Toggle */}
+            <View style={styles.toggleContainer}>
+                <Pressable
+                    style={[styles.toggleButton, activeTab === "history" && styles.activeButton]}
+                    onPress={() => setActiveTab("history")}
+                >
+                    <Text style={[styles.toggleText, activeTab === "history" && styles.activeText]}>Run History</Text>
+                </Pressable>
+                <Pressable
+                    style={[styles.toggleButton, activeTab === "stats" && styles.activeButton]}
+                    onPress={() => setActiveTab("stats")}
+                >
+                    <Text style={[styles.toggleText, activeTab === "stats" && styles.activeText]}>Run Statistics</Text>
+                </Pressable>
             </View>
 
-            {/* Recent Runs */}
-            <Text style={styles.sectionTitle}>Recent Runs</Text>
+            {/* Placeholder View */}
+            {activeTab === "none" && (
+                <Text style={styles.placeholderText}> Tap to view your run history or statistics! </Text>
+            )}
 
-            {loading ? (
-                <ActivityIndicator color="#5F19FF" style={{ marginTop: 20 }} />
-            ) : error ? (
-                <Text style={styles.errorText}>Error fetching runs: {error}</Text>
-            ) : runs.length === 0 ? (
-                <Text style={styles.emptyText}>No runs yet. Start logging your runs!</Text>
-            ) : (
-                runs.slice(0, 3).map((item) => (
-                    <RunCard
-                        key={item.id}
-                        run={item}
-                        userName={profile?.name ?? "Runner"}
-                        avatarUrl={imageURI || profile?.avatarUrl || null}
-                    />
-                ))
+            {/* Stats Dashboard */}
+            {activeTab === "stats" && (
+                <View>
+                    <Text style={styles.sectionTitle}>Achievements</Text>
+                    <View style={styles.achievementsRow}>
+                        <View style={styles.achievementCard}>
+                            <Text style={styles.achievementValue}>{runs.length}</Text>
+                            <Text style={styles.achievementLabel}>Runs{'\n'}Logged</Text>
+                        </View>
+                        <View style={styles.achievementCard}>
+                            <Text style={styles.achievementValue}>{totalDistance}km</Text>
+                            <Text style={styles.achievementLabel}>Total Distance</Text>
+                        </View>
+                        <View style={styles.achievementCard}>
+                            <Text style={styles.achievementValue}>{bestPace}</Text>
+                            <Text style={styles.achievementLabel}>Fastest{'\n'}Pace</Text>
+                        </View>
+                    </View>
+                    <StatsDashboard runs={runs} />
+                </View>
+            )}
+
+            {/* Run History */}
+            {activeTab === "history" && (
+                <View>
+                    <Text style={styles.sectionTitle}>Run History</Text>
+                    {loading ? (
+                        <ActivityIndicator color="#5F19FF" style={{ marginTop: 20 }} />
+                    ) : error ? (
+                        <Text style={styles.errorText}>Error loading runs: {error}</Text>
+                    ) : runs.length === 0 ? (
+                        <Text style={styles.emptyText}>No runs yet. Start logging your runs!</Text>
+                    ) : (
+                        runs.map((item) => (
+                            <RunCard
+                                key={item.id}
+                                run={item}
+                                userName={profile?.name ?? "Runner"}
+                                avatarUrl={imageURI || profile?.avatarUrl || null}
+                            />
+                        ))
+                    )}
+                </View>
             )}
 
             {/* Sign Out */}
@@ -511,4 +542,42 @@ const styles = StyleSheet.create({
         color: "#fff",
         fontWeight: "bold"
     },
+    toggleContainer: {
+        flexDirection: "row",
+        marginHorizontal: 24,
+        marginTop: 12,
+        marginBottom: 24,
+        borderRadius: 8,
+        backgroundColor: "#f0f0f0",
+        padding: 4
+    },
+    toggleButton: {
+        flex: 1,
+        paddingVertical: 12,
+        alignItems: "center",
+        borderRadius: 6
+    },
+    activeButton: {
+        backgroundColor: "#fff",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2
+    },
+    toggleText: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#666"
+    },
+    activeText: {
+        color: "#000"
+    },
+    placeholderText: {
+        textAlign: "center",
+        color: "#888",
+        fontStyle: "italic",
+        marginTop: 40,
+        paddingHorizontal: 24,
+    }
 });
