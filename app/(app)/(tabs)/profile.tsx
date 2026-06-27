@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, StyleSheet, ScrollView, ActivityIndicator, Alert, Modal, Image, TextInput } from "react-native";
+import { View, Text, Pressable, StyleSheet, ScrollView, ActivityIndicator, Alert, Modal, Image, TextInput, KeyboardAvoidingView, Platform } from "react-native";
 import { useAuth } from "../../../context/Auth";
 import {useUserRuns} from "../../../hooks/useUserRuns";
 import RunCard from "../../../components/RunCard";
@@ -10,6 +10,7 @@ import { EmailAuthProvider, reauthenticateWithCredential, updateEmail, updatePas
 import { auth } from "../../../firebaseConfig";
 import { validateEmail, validatePassword } from "../../../utils/validation";
 import StatsDashboard from "../../../components/StatsDashboard";
+import { Key } from "phosphor-react-native";
 
 export default function ProfileScreen() {
     const { profile, signOut } = useAuth();
@@ -24,7 +25,7 @@ export default function ProfileScreen() {
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [isSaving, setIsSaving] = useState(false);
-    const [activeTab, setActiveTab] = useState<"none" | "history" | "stats">("none");
+    const [activeTab, setActiveTab] = useState<"none" | "history" | "stats">("history");
 
     const totalDistance = runs.reduce((sum, r) => sum + r.distance, 0).toFixed(2);
     const bestPace = runs.length === 0 ? '--' : runs.reduce((best,r) => {
@@ -245,11 +246,15 @@ export default function ProfileScreen() {
 
             {/* Edit Profile Modal */}
             <Modal visible={EditModeVisibility} animationType="slide" presentationStyle="pageSheet">
-                <ScrollView
-                    style={{ backgroundColor: "#fff" }}
-                    contentContainerStyle={styles.modalContainer}
-                    showsVerticalScrollIndicator={false}
-                    keyboardShouldPersistTaps="handled"
+                <KeyboardAvoidingView
+                    style={{ flex: 1, backgroundColor: "#fff" }}
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                >
+                    <ScrollView
+                        style={{ backgroundColor: "#fff" }}
+                        contentContainerStyle={styles.modalContainer}
+                        showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
                 >                   
                     <Text style={styles.modalTitle}>Edit Profile</Text>
                     <Pressable onPress={selectImage} style={styles.imagePickerButton}>
@@ -333,6 +338,7 @@ export default function ProfileScreen() {
                         </Pressable>
                     </View>
                 </ScrollView>
+                </KeyboardAvoidingView>
             </Modal>
 
         </ScrollView>

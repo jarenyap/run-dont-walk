@@ -1,7 +1,8 @@
-import React, { useMemo } from "react";
-import { View, Text, StyleSheet, Dimensions } from "react-native";  
+import React, { useMemo, useState } from "react";
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from "react-native";  
 import { VictoryBar, VictoryChart, VictoryTheme, VictoryAxis, VictoryPie} from "victory-native";
 import { Run } from "../types";
+import { aggregateDistance, aggregateRunTypes } from "../services/statsService";
 
 interface StatsDashboardItems {
     runs: Run[];
@@ -9,39 +10,28 @@ interface StatsDashboardItems {
 
 export default function StatsDashboard({ runs }: StatsDashboardItems) {
     const windowWidth = Dimensions.get("window").width;
-    const monthlyDistance = useMemo(() => {
-        const monthlyData: { [key: string]: number } = {};
-        runs.forEach(run => {
-            if (!run.createdAt) return;
-            const date = run.createdAt.toDate();
-            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            const month = months[date.getMonth()] + " " + date.getFullYear();
-            monthlyData[month] = (monthlyData[month] || 0) + run.distance;
-            })
-            return Object.keys(monthlyData).map(month => ({ 
-                month: month, 
-                distance: monthlyData[month] 
-            }));
-        }, [runs]);
-
-    const runType = useMemo(() => {
-        const typeData: { [key: string]: number } = {};
-        runs.forEach(run => {
-            if (!run.type) return;
-            const type = run.type || "Other";
-            typeData[type] = (typeData[type] || 0) + 1;
-            })
-            return Object.keys(typeData).map(type => ({ 
-                type: type, 
-                count: typeData[type] 
-            }));
-        }, [runs]);
-
+    const [distanceTimePeriod, setDistanceTimePeriod] = useState<"weekly" | "monthly">("weekly");
+    const [runTypeTimePeriod, setRunTypeTimePeriod] = useState<"weekly" | "monthly">("weekly");
+    const distance = useMemo(() => aggregateDistance(runs, distanceTimePeriod), [runs, distanceTimePeriod]);
+    const { runType, totalRuns } = useMemo(() => aggregateRunTypes(runs, runTypeTimePeriod), [runs, runTypeTimePeriod]);
+        
     return (
         <View style={styles.container}>
+
             <View style={styles.chartCard}>
-                <Text style={styles.chartTitle}>Monthly Distance (km)</Text>
-                {monthlyDistance.length > 0 ? (
+                <View style={styles.header}>
+                    <Text style={styles.chartTitle}>Distance Over Time (km)</Text>
+                    <View style={styles.toggleContainer}>
+                        <TouchableOpacity onPress={() => setDistanceTimePeriod("weekly")} style={[styles.toggleBtn, distanceTimePeriod === "weekly" && styles.toggleActive]}>
+                            <Text style={distanceTimePeriod === "weekly" ? styles.toggleActiveText : styles.toggleText}>Weekly 🔽</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => setDistanceTimePeriod("monthly")} style={[styles.toggleBtn, distanceTimePeriod === "monthly" && styles.toggleActive]}>
+                            <Text style={distanceTimePeriod === "monthly" ? styles.toggleActiveText : styles.toggleText}>Monthly 🔽</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {distance.length > 0 ? (
                     <VictoryChart
                         theme={VictoryTheme.material}
                         domainPadding={{ x: 20 }}
@@ -51,8 +41,8 @@ export default function StatsDashboard({ runs }: StatsDashboardItems) {
                         <VictoryAxis />
                         <VictoryAxis dependentAxis />
                         <VictoryBar
-                            data={monthlyDistance}
-                            x="month"
+                            data={distance}
+                            x="label"
                             y="distance"
                             style={{ data: { fill: "#6C2BFF" } }}
                             cornerRadius={{ top: 4 }}
@@ -64,13 +54,23 @@ export default function StatsDashboard({ runs }: StatsDashboardItems) {
         </View>
 
         <View style={styles.chartCard}>
-            <Text style={styles.chartTitle}>Run Type Distribution</Text>
+            <View style={styles.header}>
+                <Text style={styles.chartTitle}>Run Type Distribution</Text>
+                <View style={styles.toggleContainer}>
+                    <TouchableOpacity onPress={() => setRunTypeTimePeriod("weekly")} style={[styles.toggleBtn, runTypeTimePeriod === "weekly" && styles.toggleActive]}>
+                        <Text style={runTypeTimePeriod === "weekly" ? styles.toggleActiveText : styles.toggleText}>Weekly 🔽</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => setRunTypeTimePeriod("monthly")} style={[styles.toggleBtn, runTypeTimePeriod === "monthly" && styles.toggleActive]}>
+                        <Text style={runTypeTimePeriod === "monthly" ? styles.toggleActiveText : styles.toggleText}>Monthly 🔽</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
             {runType.length > 0 ? (
                 <VictoryPie
                     data={runType}
                     x="type"
                     y="count"
-                    colorScale={["#FF8538", "#6C2BFF", "#4DBF4D", "#FF4444"]}
+                    colorScale={["#34C759", "#FF6B35", "#FF3B30", "#0A84FF"]}
                     width={320}
                     height={320}
                     innerRadius={50}
@@ -79,7 +79,6 @@ export default function StatsDashboard({ runs }: StatsDashboardItems) {
                 <Text style={styles.emptyText}> Start logging to see your data! </Text>
             )}
         </View>
-                
     </View>
     );
 }
@@ -90,7 +89,7 @@ const styles = StyleSheet.create({
         paddingBottom: 40,
     },
     chartCard: {
-        backgroundColor: "#fff",
+        backgroundColor: "#FFF",
         borderRadius: 12,
         padding: 16,
         marginBottom: 20,
@@ -111,5 +110,39 @@ const styles = StyleSheet.create({
         marginTop: 40,
         color: "#888",
         fontStyle: "italic"
+    },
+    header: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 10,
+    },
+    toggleContainer: {
+        flexDirection: "row",
+        backgroundColor: "#F0F0F0",
+        borderRadius: 8,
+        padding: 2,
+    },
+    toggleBtn: {
+        paddingVertical: 4,
+        paddingHorizontal: 10,
+        borderRadius: 6,
+    },
+    toggleActive: {
+        backgroundColor: "#6C2BFF",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 1,
+    },
+    toggleText: {
+        fontSize: 12,
+        color: "#666",
+    },
+    toggleActiveText: {
+        fontSize: 12,
+        color: "#000",
+        fontWeight: "bold",
     }
 });
