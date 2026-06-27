@@ -47,10 +47,10 @@
     ],
     "coverageThreshold": {
       "global": { "lines": 70 }
-    }
-  },
-  "moduleNameMapper": {
+    },
+    "moduleNameMapper": {
     "^firebase/firestore$": "<rootDir>/__mocks__/firebase/firestore.js"
+    }
   },
   "private": true
 }
