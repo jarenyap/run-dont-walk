@@ -4,8 +4,23 @@ const getWeek = (d: Date) => {
     const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
     date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
     const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-    return Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+    return Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7));
 };
+
+const startOfCurrWeek = () => {
+  const now = new Date();
+  const start = new Date(now);
+  const dayOfWeek = start.getDay() || 7;
+  start.setDate(start.getDate() - dayOfWeek + 1);
+  start.setHours(0, 0, 0, 0);
+  return start;
+};
+
+const startOfCurrMonth = () => {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+  return start;
+}
 
 export const aggregateDistance = (runs: Run[], timePeriod: "weekly" | "monthly") => {
     const avgData: { [key: string]: number } = {};
@@ -38,14 +53,13 @@ export const aggregateRunTypes = (runs: Run[], timePeriod: "weekly" | "monthly")
     const now = new Date();
     const currMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const dayOfWeek = now.getDay() || 7;
-    const currWeek = new Date(now.setDate(now.getDate() - dayOfWeek + 1));
+    const currWeek = startOfCurrWeek();
     runs.forEach((run) => {
         if (!run.type || !run.createdAt) return;
         const runDate = run.createdAt.toDate();
         if (timePeriod === "weekly" && runDate < currWeek) return;
         if (timePeriod === "monthly" && runDate < currMonth) return;
-        const type = run.type || "easy";
-        typeData[type] = (typeData[type] || 0) + 1;
+        typeData[run.type] = (typeData[run.type] || 0) + 1;
         total ++;
     });
 
