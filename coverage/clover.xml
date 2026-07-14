@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1784006849200" clover="3.2.0">
-  <project timestamp="1784006849200" name="All files">
-    <metrics statements="176" coveredstatements="164" conditionals="83" coveredconditionals="79" methods="37" coveredmethods="33" elements="296" coveredelements="276" complexity="0" loc="176" ncloc="176" packages="2" files="12" classes="12"/>
+<coverage generated="1784007047323" clover="3.2.0">
+  <project timestamp="1784007047323" name="All files">
+    <metrics statements="176" coveredstatements="172" conditionals="83" coveredconditionals="79" methods="37" coveredmethods="36" elements="296" coveredelements="287" complexity="0" loc="176" ncloc="176" packages="2" files="12" classes="12"/>
     <package name="services">
-      <metrics statements="127" coveredstatements="115" conditionals="43" coveredconditionals="39" methods="31" coveredmethods="27"/>
+      <metrics statements="127" coveredstatements="123" conditionals="43" coveredconditionals="39" methods="31" coveredmethods="30"/>
       <file name="commentService.ts" path="/Users/jaren/Documents/GitHub Repos/Walk-Dont-Run/services/commentService.ts">
         <metrics statements="12" coveredstatements="12" conditionals="2" coveredconditionals="2" methods="4" coveredmethods="4"/>
         <line num="12" count="7" type="stmt"/>
@@ -44,30 +44,30 @@
         <line num="10" count="6" type="stmt"/>
       </file>
       <file name="runService.ts" path="/Users/jaren/Documents/GitHub Repos/Walk-Dont-Run/services/runService.ts">
-        <metrics statements="23" coveredstatements="15" conditionals="0" coveredconditionals="0" methods="6" coveredmethods="3"/>
+        <metrics statements="23" coveredstatements="23" conditionals="0" coveredconditionals="0" methods="6" coveredmethods="6"/>
         <line num="6" count="1" type="stmt"/>
-        <line num="7" count="5" type="stmt"/>
-        <line num="8" count="5" type="stmt"/>
-        <line num="10" count="5" type="stmt"/>
-        <line num="11" count="5" type="stmt"/>
-        <line num="18" count="5" type="stmt"/>
-        <line num="19" count="5" type="stmt"/>
-        <line num="24" count="5" type="stmt"/>
+        <line num="7" count="6" type="stmt"/>
+        <line num="8" count="6" type="stmt"/>
+        <line num="10" count="6" type="stmt"/>
+        <line num="11" count="6" type="stmt"/>
+        <line num="18" count="6" type="stmt"/>
+        <line num="19" count="6" type="stmt"/>
+        <line num="24" count="6" type="stmt"/>
         <line num="25" count="5" type="stmt"/>
-        <line num="27" count="0" type="stmt"/>
-        <line num="28" count="0" type="stmt"/>
+        <line num="27" count="1" type="stmt"/>
+        <line num="28" count="1" type="stmt"/>
         <line num="32" count="1" type="stmt"/>
-        <line num="33" count="3" type="stmt"/>
-        <line num="34" count="3" type="stmt"/>
-        <line num="39" count="3" type="stmt"/>
+        <line num="33" count="4" type="stmt"/>
+        <line num="34" count="4" type="stmt"/>
+        <line num="39" count="4" type="stmt"/>
         <line num="40" count="3" type="stmt"/>
-        <line num="45" count="0" type="stmt"/>
-        <line num="46" count="0" type="stmt"/>
+        <line num="45" count="1" type="stmt"/>
+        <line num="46" count="1" type="stmt"/>
         <line num="50" count="1" type="stmt"/>
-        <line num="55" count="0" type="stmt"/>
-        <line num="61" count="0" type="stmt"/>
-        <line num="63" count="0" type="stmt"/>
-        <line num="67" count="0" type="stmt"/>
+        <line num="55" count="4" type="stmt"/>
+        <line num="61" count="4" type="stmt"/>
+        <line num="63" count="2" type="stmt"/>
+        <line num="67" count="2" type="stmt"/>
       </file>
       <file name="statsService.ts" path="/Users/jaren/Documents/GitHub Repos/Walk-Dont-Run/services/statsService.ts">
         <metrics statements="48" coveredstatements="45" conditionals="30" coveredconditionals="29" methods="10" coveredmethods="9"/>
