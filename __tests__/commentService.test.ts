@@ -83,7 +83,7 @@ describe("addComment", () => {
 describe("subscribeToComments", () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it("returns an unssubcribe function", () => {
+  it("returns an unsubcribe function", () => {
     const mockUnsubscribe = jest.fn();
     onSnapshot.mockReturnValue(mockUnsubscribe);
 
@@ -93,7 +93,7 @@ describe("subscribeToComments", () => {
 
   it("calls onUpdate with mapped comments when snapshot fires", () => {
     const mockOnUpdate = jest.fn();
-    const fakeSnapshot ={
+    const fakeSnapshot = {
       docs: [
         { id: "c1", data: () => ({ text: "Hello", authorUid: "u1" }) },
         { id: "c2", data: () => ({ text: "World", authorUid: "u2" }) },

@@ -84,6 +84,8 @@ describe("updateUserProfile", () => {
 });
 
 describe("uploadAvatar", () => {
+  const originalXMLHttpRequest = globalThis.XMLHttpRequest;
+  
   const mockXHRInstance = {
     open: jest.fn(),
     send: jest.fn(),
@@ -97,6 +99,10 @@ describe("uploadAvatar", () => {
     globalThis.XMLHttpRequest = jest.fn(() => mockXHRInstance) as unknown as typeof XMLHttpRequest;
   });
 
+  afterAll(() => {
+    globalThis.XMLHttpRequest = originalXMLHttpRequest;
+  });
+  
   beforeEach(() => {
     jest.clearAllMocks();
     mockXHRInstance.onload = null;
