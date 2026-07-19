@@ -14,9 +14,11 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~54.0.33",
     "expo-constants": "~18.0.13",
+    "expo-file-system": "~19.0.23",
     "expo-image-picker": "~17.0.11",
     "expo-linking": "~8.0.12",
     "expo-router": "~6.0.23",
+    "expo-sharing": "~14.0.8",
     "expo-status-bar": "~3.0.9",
     "expo-updates": "~29.0.18",
     "firebase": "^12.13.0",
@@ -46,11 +48,18 @@
       "!**/node_modules/**"
     ],
     "coverageThreshold": {
-      "global": { "lines": 70 }
+      "global": {
+        "lines": 70
+      }
     },
     "moduleNameMapper": {
-    "^firebase/firestore$": "<rootDir>/__mocks__/firebase/firestore.js"
+      "^firebase/firestore$": "<rootDir>/__mocks__/firebase/firestore.js"
     }
   },
-  "private": true
+  "private": true,
+  "allowScripts": {
+    "@firebase/util@1.15.1": true,
+    "fsevents@2.3.3": true,
+    "protobufjs@7.6.3": true
+  }
 }

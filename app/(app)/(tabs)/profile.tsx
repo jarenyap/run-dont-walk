@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, Pressable, StyleSheet, ScrollView, ActivityIndicator, Alert, Modal, Image, TextInput, KeyboardAvoidingView, Platform } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { View, Text, Pressable, StyleSheet, ScrollView, ActivityIndicator, Alert, Modal, Image, TextInput, KeyboardAvoidingView, Platform, Animated } from "react-native";
 import { useAuth } from "../../../context/Auth";
 import {useUserRuns} from "../../../hooks/useUserRuns";
 import RunCard from "../../../components/RunCard";
@@ -10,7 +10,10 @@ import { EmailAuthProvider, reauthenticateWithCredential, updateEmail, updatePas
 import { auth } from "../../../firebaseConfig";
 import { validateEmail, validatePassword } from "../../../utils/validation";
 import StatsDashboard from "../../../components/StatsDashboard";
-import { Key } from "phosphor-react-native";
+import { Key, CloudArrowDown, X } from "phosphor-react-native";
+import { exportCSV } from "../../../services/exportService";
+import { useModalAction } from "../../../hooks/useModalAction";
+
 
 export default function ProfileScreen() {
     const { profile, signOut } = useAuth();
@@ -26,6 +29,13 @@ export default function ProfileScreen() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [isSaving, setIsSaving] = useState(false);
     const [activeTab, setActiveTab] = useState<"none" | "history" | "stats">("history");
+    const [exportVisible, setExportVisible] = useState(false);
+    const [exporting, setExporting] = useState(false);
+    const [exportError, setExportError] = useState<string | null>(null);
+    const bannerAnimation = useRef(new Animated.Value(-80)).current;
+    const { close, modalProperty } = useModalAction();
+    const [selectionMode, setSelectionMode] = useState(false);
+    const [selectedRuns, setSelectedRuns] = useState<Set<string>>(new Set());
 
     const totalDistance = runs.reduce((sum, r) => sum + r.distance, 0).toFixed(2);
     const bestPace = runs.length === 0 ? '--' : runs.reduce((best,r) => {
@@ -144,206 +154,368 @@ export default function ProfileScreen() {
         }
     };
 
+    useEffect(() => {
+        if (!exportError) return;
+        Animated.timing(bannerAnimation, {
+            toValue: 0,
+            duration: 250,
+            useNativeDriver: true,
+        }).start();
+        const timer = setTimeout(() => dismissError(), 4000);
+        return () => clearTimeout(timer);
+    }, [exportError]);
+
+    const dismissError = () => {
+        Animated.timing(bannerAnimation, {
+            toValue: -80,
+            duration: 200,
+            useNativeDriver: true
+        }).start(() => setExportError(null))
+    };
+
+    const handleExportPress = () => {
+        if (selectionMode ) {
+            if (selectedRuns.size === 0) return;
+            exportRuns();
+        } else {
+            setExportVisible(true);
+        }
+    };
+
+    const exportRuns = async () => {
+            setExporting(true);
+            setExportError(null);
+            try {
+                const runsToExport = selectionMode ? 
+                    runs.filter(r => selectedRuns.has(r.id)) : runs;
+                await exportCSV(runsToExport);
+                if (selectionMode) {
+                    outSelectionMode();
+                }
+            } catch (e) {
+                console.error("Export failed: ", e);
+                setExportError("Export failed. Please try again.");
+            } finally {
+                setExporting(false);
+            }
+        };
+
+    const handleExportConfirm = () => close(exportRuns, setExportVisible);
+
+    const toggleRunSelection = (id: string) => {
+        setSelectedRuns(prev => {
+            const next = new Set(prev);
+            next.has(id) ? next.delete(id) : next.add(id);
+            return next;
+        });
+    };
+
+    useEffect(() => {
+        setSelectedRuns(prev => {
+            const valid = new Set(runs.map(r => r.id));
+            const next = new Set([...prev].filter(id => valid.has(id)));
+            return next.size === prev.size ? prev : next;
+        });
+    }, [runs]);
+
+    const inSelectionMode = () => {
+        setSelectionMode(true);
+        setSelectedRuns(new Set());
+    };
+
+    const outSelectionMode = () => {
+        setSelectionMode(false);
+        setSelectedRuns(new Set());
+    };
+
+    const selectAllRuns = () => {
+        setSelectedRuns(new Set(runs.map(r => r.id)));
+    };
+
+    const clearSelection = () => {
+        setSelectedRuns(new Set());
+    };
+
     return (
-        <ScrollView
-            style={styles.container}
-            contentContainerStyle={styles.content}
-            showsVerticalScrollIndicator={false}
-        >
-            {/* Edit Button */}
-            <View style={styles.headerRow}>
-                <Pressable onPress={openEditMode} style={styles.editButton}>
-                    <Text style={styles.editButtonText}>Edit Profile</Text>
-                </Pressable>
-            </View>
-
-            {/* Avatar */}
-            <View style={styles.avatarContainer}>
-                {profile?.avatarUrl ? (
-                    <Image source={{ uri: profile.avatarUrl }}
-                    style={styles.avatar} />
-                ) : (
-                    <View style={styles.avatar}>
-                        <Text style={styles.avatarIcon}>👤</Text>
-                    </View>
-                )}
-            </View>
-
-            {/* User Info */}
-            <Text style={styles.name}>{profile?.name || "Runner"}</Text>
-            <Text style={styles.bio}>{profile?.bio || "Add a bio!"}</Text>
-            
-            {/* Toggle */}
-            <View style={styles.toggleContainer}>
-                <Pressable
-                    style={[styles.toggleButton, activeTab === "history" && styles.activeButton]}
-                    onPress={() => setActiveTab("history")}
+        <View style={styles.screen}>
+            {exportError && (
+                <Animated.View
+                    style={[styles.errorMessage, { transform: [{ translateY: bannerAnimation }] }]}
                 >
-                    <Text style={[styles.toggleText, activeTab === "history" && styles.activeText]}>Run History</Text>
-                </Pressable>
-                <Pressable
-                    style={[styles.toggleButton, activeTab === "stats" && styles.activeButton]}
-                    onPress={() => setActiveTab("stats")}
-                >
-                    <Text style={[styles.toggleText, activeTab === "stats" && styles.activeText]}>Run Statistics</Text>
-                </Pressable>
-            </View>
-
-            {/* Placeholder View */}
-            {activeTab === "none" && (
-                <Text style={styles.placeholderText}> Tap to view your run history or statistics! </Text>
+                    <Text style={styles.errorMessageText}>{exportError}</Text>
+                    <Pressable onPress={dismissError} hitSlop={8}>
+                        <X size={16} color="#fff" weight="bold" />
+                    </Pressable>
+                </Animated.View>
             )}
 
-            {/* Stats Dashboard */}
-            {activeTab === "stats" && (
-                <View>
-                    <Text style={styles.sectionTitle}>Achievements</Text>
-                    <View style={styles.achievementsRow}>
-                        <View style={styles.achievementCard}>
-                            <Text style={styles.achievementValue}>{runs.length}</Text>
-                            <Text style={styles.achievementLabel}>Runs{'\n'}Logged</Text>
-                        </View>
-                        <View style={styles.achievementCard}>
-                            <Text style={styles.achievementValue}>{totalDistance}km</Text>
-                            <Text style={styles.achievementLabel}>Total Distance</Text>
-                        </View>
-                        <View style={styles.achievementCard}>
-                            <Text style={styles.achievementValue}>{bestPace}</Text>
-                            <Text style={styles.achievementLabel}>Fastest{'\n'}Pace</Text>
-                        </View>
-                    </View>
-                    <StatsDashboard runs={runs} />
+            <ScrollView
+                style={styles.container}
+                contentContainerStyle={styles.content}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Edit Button */}
+                <View style={styles.headerRow}>
+                    <Pressable onPress={openEditMode} style={styles.editButton}>
+                        <Text style={styles.editButtonText}>Edit Profile</Text>
+                    </Pressable>
                 </View>
-            )}
 
-            {/* Run History */}
-            {activeTab === "history" && (
-                <View>
-                    <Text style={styles.sectionTitle}>Run History</Text>
-                    {loading ? (
-                        <ActivityIndicator color="#5F19FF" style={{ marginTop: 20 }} />
-                    ) : error ? (
-                        <Text style={styles.errorText}>Error loading runs: {error}</Text>
-                    ) : runs.length === 0 ? (
-                        <Text style={styles.emptyText}>No runs yet. Start logging your runs!</Text>
+                {/* Avatar */}
+                <View style={styles.avatarContainer}>
+                    {profile?.avatarUrl ? (
+                        <Image source={{ uri: profile.avatarUrl }}
+                        style={styles.avatar} />
                     ) : (
-                        runs.map((item) => (
-                            <RunCard
-                                key={item.id}
-                                run={item}
-                                userName={profile?.name ?? "Runner"}
-                                avatarUrl={imageURI || profile?.avatarUrl || null}
-                            />
-                        ))
+                        <View style={styles.avatar}>
+                            <Text style={styles.avatarIcon}>👤</Text>
+                        </View>
                     )}
                 </View>
-            )}
 
-            {/* Sign Out */}
-            <Pressable style={styles.button} onPress={handleSignOut}>
-                <Text style={styles.buttonText}>Log Out</Text>
-            </Pressable>
+                {/* User Info */}
+                <Text style={styles.name}>{profile?.name || "Runner"}</Text>
+                <Text style={styles.bio}>{profile?.bio || "Add a bio!"}</Text>
+                
+                {/* Toggle */}
+                <View style={styles.toggleContainer}>
+                    <Pressable
+                        style={[styles.toggleButton, activeTab === "history" && styles.activeButton]}
+                        onPress={() => setActiveTab("history")}
+                    >
+                        <Text style={[styles.toggleText, activeTab === "history" && styles.activeText]}>Run History</Text>
+                    </Pressable>
+                    <Pressable
+                        style={[styles.toggleButton, activeTab === "stats" && styles.activeButton]}
+                        onPress={() => setActiveTab("stats")}
+                    >
+                        <Text style={[styles.toggleText, activeTab === "stats" && styles.activeText]}>Run Statistics</Text>
+                    </Pressable>
+                </View>
 
-            {/* Edit Profile Modal */}
-            <Modal visible={EditModeVisibility} animationType="slide" presentationStyle="pageSheet">
-                <KeyboardAvoidingView
-                    style={{ flex: 1, backgroundColor: "#fff" }}
-                    behavior={Platform.OS === "ios" ? "padding" : "height"}
-                >
-                    <ScrollView
-                        style={{ backgroundColor: "#fff" }}
-                        contentContainerStyle={styles.modalContainer}
-                        showsVerticalScrollIndicator={false}
-                        keyboardShouldPersistTaps="handled"
-                >                   
-                    <Text style={styles.modalTitle}>Edit Profile</Text>
-                    <Pressable onPress={selectImage} style={styles.imagePickerButton}>
-                        {imageURI || profile?.avatarUrl ? (
-                            <Image
-                                source={{ uri: imageURI || profile?.avatarUrl || "" }}
-                                style={styles.modalAvatarImage}
-                            />
-                        ) : (
-                            <View style={styles.modalAvatarPlaceholder}>
-                                <Text style={styles.avatarIcon}>👤</Text>
+                {/* Placeholder View */}
+                {activeTab === "none" && (
+                    <Text style={styles.placeholderText}> Tap to view your run history or statistics! </Text>
+                )}
+
+                {/* Stats Dashboard */}
+                {activeTab === "stats" && (
+                    <View>
+                        <Text style={styles.sectionTitle}>Achievements</Text>
+                        <View style={styles.achievementsRow}>
+                            <View style={styles.achievementCard}>
+                                <Text style={styles.achievementValue}>{runs.length}</Text>
+                                <Text style={styles.achievementLabel}>Runs{'\n'}Logged</Text>
+                            </View>
+                            <View style={styles.achievementCard}>
+                                <Text style={styles.achievementValue}>{totalDistance}{'\n'}km</Text>
+                                <Text style={styles.achievementLabel}>Total Distance</Text>
+                            </View>
+                            <View style={styles.achievementCard}>
+                                <Text style={styles.achievementValue}>{bestPace}</Text>
+                                <Text style={styles.achievementLabel}>Fastest{'\n'}Pace</Text>
+                            </View>
+                        </View>
+                        <StatsDashboard runs={runs} />
+                    </View>
+                )}
+
+                {/* Run History */}
+                {activeTab === "history" && (
+                    <View>
+                        <Text style={styles.sectionTitle}>Run History</Text>
+                        {selectionMode && (
+                            <View style={styles.selectionTools}>
+                                <Text style={styles.selectionCount}>{selectedRuns.size} selected</Text>
+                                <View style={styles.selectionActions}>
+                                    <Pressable onPress={selectedRuns.size === runs.length ? clearSelection : selectAllRuns}>
+                                        <Text style={styles.selectAll}>
+                                            {selectedRuns.size === runs.length ? "Clear?" : "Select All"}
+                                        </Text>
+                                    </Pressable>
+                                    <Pressable onPress={outSelectionMode}>
+                                        <Text style={styles.cancelSelection}>Cancel</Text>
+                                    </Pressable>
+                                </View>
                             </View>
                         )}
-                        <Text style={styles.changeAvatarText}>Change Photo 📷</Text>
-                    </Pressable>
-                    <Text style={styles.label}>Display Name</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={editName}
-                        onChangeText={setEditName}
-                    />
-                    <Text style={styles.label}>Bio</Text>
-                    <TextInput
-                        style={[styles.input, styles.bioInput]}
-                        value={editBio}
-                        onChangeText={setEditBio}
-                        placeholder="Tell us about yourself..."
-                        placeholderTextColor="#999"
-                        multiline
-                    />
-                    <View style={{ height: 1, backgroundColor: "eee", marginVertical: 16 }} />
-                    <Text style={[styles.sectionTitle, { paddingHorizontal: 0 }]}>Change Email / Password</Text>
-                    <Text style={styles.label}>Email</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={emailEdit}
-                        onChangeText={setEmailEdit}
-                        placeholder="Email"
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                    />
-                    <Text style={styles.label}>Current Password</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={oldPassword}
-                        onChangeText={setOldPassword}
-                        placeholder="Current Password"
-                        secureTextEntry
-                    />
-                    <Text style={styles.label}>New Password</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={newPassword}
-                        onChangeText={setNewPassword}
-                        placeholder="New Password"
-                        secureTextEntry
-                    />
-                    <Text style={styles.label}>Confirm New Password</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={confirmPassword}
-                        onChangeText={setConfirmPassword}
-                        placeholder="Confirm New Password"
-                        secureTextEntry
-                    />
-                    <View style={styles.modalActions}>
-                        <Pressable style={styles.cancelButton} onPress={() => {
-                            setEditName(profile?.name ?? ""); 
-                            setEditBio(profile?.bio ?? ""); 
-                            setImageURI(profile?.avatarUrl ?? null); 
-                            setEmailEdit(profile?.email || "");
-                            setOldPassword("");
-                            setNewPassword("");
-                            setConfirmPassword("");
-                            setEditModeVisibility(false); 
-                            }}>
-                            <Text style={styles.cancelButtonText}>Cancel</Text>
-                        </Pressable>
-                        <Pressable style={styles.saveButton} onPress={handleSaveChanges} disabled={isSaving}>
-                            {isSaving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Save</Text>}
-                        </Pressable>
-                    </View>
-                </ScrollView>
-                </KeyboardAvoidingView>
-            </Modal>
+                        {loading ? (
+                            <ActivityIndicator color="#5F19FF" style={{ marginTop: 20 }} />
+                        ) : error ? (
+                            <Text style={styles.errorText}>Error loading runs: {error}</Text>
+                        ) : runs.length === 0 ? (
+                            <Text style={styles.emptyText}>No runs yet. Start logging your runs!</Text>
+                        ) : (
+                            runs.map((item) => (
+                                <RunCard
+                                    key={item.id}
+                                    run={item}
+                                    userName={profile?.name ?? "Runner"}
+                                    avatarUrl={imageURI || profile?.avatarUrl || null}
+                                    selectable={selectionMode}
+                                    selected={selectedRuns.has(item.id)}
+                                    toggleSelect={() => toggleRunSelection(item.id)}
+                                />
+                            ))
+                        )}
 
-        </ScrollView>
+                        {runs.length > 0 && (
+                            <Pressable style={styles.exportCard} onPress={handleExportPress} 
+                            disabled={exporting || (selectionMode && selectedRuns.size === 0)}>
+                            <CloudArrowDown size={26} color="#5F19FF" weight="bold" />
+                                <View style={styles.exportCardText}>
+                                    <Text style={styles.exportCardTitle}>
+                                        {selectionMode ? "Export Selected Runs" : "Export Run Data"}
+                                    </Text>
+                                    <Text style={styles.exportCardsubtext}>
+                                        {selectionMode ?
+                                        `Download ${selectedRuns.size} selected run${selectedRuns.size !== 1 ? "s" : ""} as CSV` :
+                                        `Download all ${runs.length} runs as CSV`}
+                                    </Text>
+                                </View>
+                                {exporting ? (
+                                    <ActivityIndicator color="#5F19FF" />
+                                ) : (
+                                    <Text style={styles.exportButton}>Export</Text>
+                                )}
+                            </Pressable>
+                        )}
+                    </View>
+                )}
+
+                {/* Sign Out */}
+                <Pressable style={styles.button} onPress={handleSignOut}>
+                    <Text style={styles.buttonText}>Log Out</Text>
+                </Pressable>
+
+                {/* Edit Profile Modal */}
+                <Modal visible={EditModeVisibility} animationType="slide" presentationStyle="pageSheet">
+                    <KeyboardAvoidingView
+                        style={{ flex: 1, backgroundColor: "#fff" }}
+                        behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    >
+                        <ScrollView
+                            style={{ backgroundColor: "#fff" }}
+                            contentContainerStyle={styles.modalContainer}
+                            showsVerticalScrollIndicator={false}
+                            keyboardShouldPersistTaps="handled"
+                    >                   
+                        <Text style={styles.modalTitle}>Edit Profile</Text>
+                        <Pressable onPress={selectImage} style={styles.imagePickerButton}>
+                            {imageURI || profile?.avatarUrl ? (
+                                <Image
+                                    source={{ uri: imageURI || profile?.avatarUrl || "" }}
+                                    style={styles.modalAvatarImage}
+                                />
+                            ) : (
+                                <View style={styles.modalAvatarPlaceholder}>
+                                    <Text style={styles.avatarIcon}>👤</Text>
+                                </View>
+                            )}
+                            <Text style={styles.changeAvatarText}>Change Photo 📷</Text>
+                        </Pressable>
+                        <Text style={styles.label}>Display Name</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={editName}
+                            onChangeText={setEditName}
+                        />
+                        <Text style={styles.label}>Bio</Text>
+                        <TextInput
+                            style={[styles.input, styles.bioInput]}
+                            value={editBio}
+                            onChangeText={setEditBio}
+                            placeholder="Tell us about yourself..."
+                            placeholderTextColor="#999"
+                            multiline
+                        />
+                        <View style={{ height: 1, backgroundColor: "eee", marginVertical: 16 }} />
+                        <Text style={[styles.sectionTitle, { paddingHorizontal: 0 }]}>Change Email / Password</Text>
+                        <Text style={styles.label}>Email</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={emailEdit}
+                            onChangeText={setEmailEdit}
+                            placeholder="Email"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                        />
+                        <Text style={styles.label}>Current Password</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={oldPassword}
+                            onChangeText={setOldPassword}
+                            placeholder="Current Password"
+                            secureTextEntry
+                        />
+                        <Text style={styles.label}>New Password</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={newPassword}
+                            onChangeText={setNewPassword}
+                            placeholder="New Password"
+                            secureTextEntry
+                        />
+                        <Text style={styles.label}>Confirm New Password</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={confirmPassword}
+                            onChangeText={setConfirmPassword}
+                            placeholder="Confirm New Password"
+                            secureTextEntry
+                        />
+                        <View style={styles.modalActions}>
+                            <Pressable style={styles.cancelButton} onPress={() => {
+                                setEditName(profile?.name ?? ""); 
+                                setEditBio(profile?.bio ?? ""); 
+                                setImageURI(profile?.avatarUrl ?? null); 
+                                setEmailEdit(profile?.email || "");
+                                setOldPassword("");
+                                setNewPassword("");
+                                setConfirmPassword("");
+                                setEditModeVisibility(false); 
+                                }}>
+                                <Text style={styles.cancelButtonText}>Cancel</Text>
+                            </Pressable>
+                            <Pressable style={styles.saveButton} onPress={handleSaveChanges} disabled={isSaving}>
+                                {isSaving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Save</Text>}
+                            </Pressable>
+                        </View>
+                    </ScrollView>
+                    </KeyboardAvoidingView>
+                </Modal>
+
+                <Modal 
+                    visible={exportVisible} 
+                    transparent 
+                    animationType="fade" 
+                    onRequestClose={() => setExportVisible(false)}
+                    {...modalProperty}
+                >
+                    <Pressable style={styles.sheetOverlay} onPress={() => setExportVisible(false)}>
+                        <View style={styles.sheetContainer}>
+                            <Pressable style={styles.sheetOption} onPress={handleExportConfirm}>
+                                <Text style={styles.sheetOptionText}>Export All Runs</Text>
+                            </Pressable>
+                            <Pressable
+                                style={styles.sheetOption}
+                                onPress={() => {
+                                    setExportVisible(false)
+                                    inSelectionMode();
+                                }}
+                            >
+                                <Text style={styles.sheetOptionText}>Select Runs to Export</Text>
+                            </Pressable>
+                            <Pressable style={styles.sheetCancel} onPress={() => setExportVisible(false)}>
+                                <Text style={styles.sheetOptionText}>Cancel</Text>
+                            </Pressable>
+                        </View>
+                    </Pressable>
+                </Modal>
+            </ScrollView>
+        </View>
     );
-};
+}
 
 const styles = StyleSheet.create({
     container: {
@@ -585,5 +757,119 @@ const styles = StyleSheet.create({
         fontStyle: "italic",
         marginTop: 40,
         paddingHorizontal: 24,
+    },
+    screen: {
+        flex: 1,
+        backgroundColor: "#ffffff",
+    },
+    errorMessage: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 10,
+        backgroundColor: "#FF4444",
+        paddingTop: 50,
+        paddingBottom: 14,
+        paddingHorizontal: 20,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+    },
+    errorMessageText: {
+        color: "#fff",
+        fontSize: 14,
+        fontWeight: "600",
+        flex: 1,
+        marginRight: 12,
+    },
+    exportCard: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#F5F2FF",
+        borderRadius: 112,
+        borderWidth: 1,
+        borderColor: "#EOD6FF",
+        padding: 14,
+        marginTop: 4,
+        marginBottom: 8,
+        gap: 12,
+    },
+    exportCardText: {
+        flex: 1,
+    },
+    exportCardTitle: {
+        fontSize: 15,
+        fontWeight: "600",
+        color: "#000000",
+    },
+    exportCardsubtext: {
+        fontSize: 13,
+        color: "#666666",
+        marginTop: 2,
+    },
+    exportButton: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#5F19FF",
+    },
+    sheetOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0, 0, 0, 0.4)",
+        justifyContent: "flex-end",
+    },
+    sheetContainer: {
+        backgroundColor: "#fff",
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
+        padding: 8,
+        paddingBottom: 32,
+    },
+    sheetOption: {
+        padding: 18,
+        alignItems: "center",
+        borderBottomWidth: 1,
+        borderBottomColor: "#eee",
+    },
+    sheetOptionText: {
+        fontSize: 16,
+        fontWeight: "600",
+        color: "#5F19FF",
+    },
+    sheetCancel: {
+        padding: 18,
+        alignItems: "center",
+        marginTop: 8,
+    },
+    sheetCancelText: {
+        fontSize: 16,
+        fontWeight: "600",
+        color: "#666",
+    },
+    selectionTools: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 12,
+        paddingHorizontal: 24,
+    },
+    selectionCount: {
+        fontSize: 14,
+        color: "666666",
+    },
+    selectAll: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#5F19FF",
+    },
+    selectionActions: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 16,
+    },
+    cancelSelection: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#666666",
     }
 });
