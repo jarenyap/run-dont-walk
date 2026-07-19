@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">31.03% </span>
+                <span class="strong">96.55% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>9/29</span>
+                <span class='fraction'>28/29</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">44.44% </span>
+                <span class="strong">66.66% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>4/9</span>
+                <span class='fraction'>6/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">20% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/5</span>
+                <span class='fraction'>5/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">31.03% </span>
+                <span class="strong">96.55% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>9/29</span>
+                <span class='fraction'>28/29</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -127,35 +127,35 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -183,36 +183,36 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import * as FileSystem from "expo-file-system/legacy";
 import { isFirestoreError } from "../utils/firestoreErrors";
 &nbsp;
-export const uploadAvatar = <span class="fstat-no" title="function not covered" >as</span>ync (userId: string, imageURI: string): Promise&lt;string&gt; =&gt; {
-<span class="cstat-no" title="statement not covered" >    try {</span>
-        const imageBlob: Blob = <span class="cstat-no" title="statement not covered" >await new Promise(<span class="fstat-no" title="function not covered" >(r</span>esolve, reject) =&gt; {</span>
-            const xhr = <span class="cstat-no" title="statement not covered" >new XMLHttpRequest();</span>
-<span class="cstat-no" title="statement not covered" >            xhr.onload = <span class="fstat-no" title="function not covered" >fu</span>nction () {</span>
-<span class="cstat-no" title="statement not covered" >                resolve(xhr.response);</span>
+export const uploadAvatar = async (userId: string, imageURI: string): Promise&lt;string&gt; =&gt; {
+    try {
+        const imageBlob: Blob = await new Promise((resolve, reject) =&gt; {
+            const xhr = new XMLHttpRequest();
+            xhr.onload = function () {
+                resolve(xhr.response);
             };
-<span class="cstat-no" title="statement not covered" >            xhr.onerror = <span class="fstat-no" title="function not covered" >fu</span>nction (e) {</span>
-<span class="cstat-no" title="statement not covered" >                console.error("Image upload failed: ", e);</span>
-<span class="cstat-no" title="statement not covered" >                reject(new TypeError("Network request failed"));</span>
+            xhr.onerror = function (e) {
+                console.error("Image upload failed: ", e);
+                reject(new TypeError("Network request failed"));
             };
-<span class="cstat-no" title="statement not covered" >            xhr.responseType = "blob";</span>
-<span class="cstat-no" title="statement not covered" >            xhr.open("GET", imageURI, true);</span>
-<span class="cstat-no" title="statement not covered" >            xhr.send(null);</span>
+            xhr.responseType = "blob";
+            xhr.open("GET", imageURI, true);
+            xhr.send(null);
         });
 &nbsp;
-        const firebaseRef = <span class="cstat-no" title="statement not covered" >ref(storage, `profilePics/${userId}.jpg`);</span>
-        const metadata = <span class="cstat-no" title="statement not covered" >{</span>
+        const firebaseRef = ref(storage, `profilePics/${userId}.jpg`);
+        const metadata = {
             contentType: "image/jpeg",
         }
-<span class="cstat-no" title="statement not covered" >        await uploadBytes(firebaseRef, imageBlob, metadata);</span>
+        await uploadBytes(firebaseRef, imageBlob, metadata);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >        (imageBlob as any).close?.();</span>
-<span class="cstat-no" title="statement not covered" >        return await getDownloadURL(firebaseRef);</span>
+        (imageBlob as any).close?.();
+        return await getDownloadURL(firebaseRef);
     } catch (e) {
-<span class="cstat-no" title="statement not covered" >        console.error("Image upload failed: ", e);</span>
-<span class="cstat-no" title="statement not covered" >        if (isFirestoreError(e) &amp;&amp; e.customData &amp;&amp; e.customData.serverResponse) {</span>
+        console.error("Image upload failed: ", e);
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (isFirestoreError(e) &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >e.customData </span>&amp;&amp; <span class="branch-2 cbranch-no" title="branch not covered" >e.customData.serverResponse)</span> {
 <span class="cstat-no" title="statement not covered" >            console.error("Server response: ", e.customData.serverResponse);</span>
         }
-<span class="cstat-no" title="statement not covered" >        throw e;</span>
+        throw e;
     }
 };
 &nbsp;
@@ -241,7 +241,7 @@ export const updateUserProfile = async (
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-06-28T13:35:01.867Z
+                at 2026-07-14T18:27:32.183Z
             </div>
         <script src="../prettify.js"></script>
         <script>

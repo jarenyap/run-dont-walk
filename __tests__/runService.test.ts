@@ -1,4 +1,4 @@
-import { logRun, getUserRuns } from "../services/runService";
+import { logRun, getUserRuns, subscribeToUserRuns } from "../services/runService";
 import type { NewRun } from "../types";
 
 jest.mock("../firebaseConfig", () => ({ db: {} }));
@@ -135,5 +135,94 @@ describe("getUserRuns", () => {
     const result = await getUserRuns("user-A");
     expect(result[0].id).toBe("run-2");
     expect(result[1].id).toBe("run-1");
+  });
+});
+
+describe("logRun error handling", () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it("throws and logs an error when batch.commit fails", async () => {
+    mockWriteBatch.mockReturnValueOnce({
+      set: jest.fn(),
+      update: jest.fn(),
+      commit: jest.fn().mockRejectedValue(new Error("Firestore write failed")),
+    });
+
+    await expect(logRun(mockNewRun)).rejects.toThrow("Firestore write failed");
+  });
+});
+
+describe("getUserRuns error handling", () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it("throws and logs an error when getDocs fails", async () => {
+    mockGetDocs.mockRejectedValueOnce(new Error("Firestore read failed"));
+    await expect(getUserRuns("user-A")).rejects.toThrow("Firestore read failed");
+  });
+});
+
+describe("subscribeToUserRuns", () => {
+  const { onSnapshot } = jest.requireMock("firebase/firestore");
+
+  beforeEach(() => jest.clearAllMocks());
+
+  it("returns an unsubscribe function", () => {
+    const mockUnsubscribe = jest.fn();
+    onSnapshot.mockReturnValue(mockUnsubscribe);
+
+    const unsub = subscribeToUserRuns("user-A", jest.fn(), jest.fn());
+    expect(typeof unsub).toBe("function");
+  });
+
+  it("calls onData with mapped runs when snapshot fires", () => {
+    const mockOnData = jest.fn();
+    const fakeSnapshot = {
+      docs: [
+        { id: "run-1", data: () => ({ distance: 5.0, userId: "user-A" }) },
+        { id: "run-2", data: () => ({ distance: 3.0, userId: "user-A" }) },
+      ],
+    };
+
+    onSnapshot.mockImplementation(
+      (_query: unknown, onData: (snap: typeof fakeSnapshot) => void) => {
+        onData(fakeSnapshot);
+        return jest.fn();
+      }
+    );
+
+    subscribeToUserRuns("user-A", mockOnData, jest.fn());
+
+    expect(mockOnData).toHaveBeenCalledWith([
+      { id: "run-1", distance: 5.0, userId: "user-A" },
+      { id: "run-2", distance: 3.0, userId: "user-A" },
+    ]);
+  });
+
+  it("calls onData with empty array when there are no runs", () => {
+    const mockOnData = jest.fn();
+    onSnapshot.mockImplementation(
+      (_query: unknown, onData: (snap: { docs: [] }) => void) => {
+        onData({ docs: [] });
+        return jest.fn();
+      }
+    );
+
+    subscribeToUserRuns("user-A", mockOnData, jest.fn());
+    expect(mockOnData).toHaveBeenCalledWith([]);
+  });
+
+  it("calls onError when Firestore emits an error", () => {
+    const mockOnError = jest.fn();
+    const fakeError = new Error("Permission denied");
+
+    onSnapshot.mockImplementation(
+      (_query: unknown, _onData: unknown, onError: (err: Error) => void) => {
+        onError(fakeError);
+        return jest.fn();
+      }
+    );
+
+    subscribeToUserRuns("user-A", jest.fn(), mockOnError);
+    expect(mockOnError).toHaveBeenCalledWith(fakeError);
   });
 });

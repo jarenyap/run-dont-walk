@@ -1,4 +1,4 @@
-import { updateUserProfile } from "../services/userService";
+import { updateUserProfile, uploadAvatar } from "../services/userService";
 
 jest.mock("../firebaseConfig", () => ({ db: {}, storage: {} }));
 jest.mock("expo-file-system/legacy", () => ({}));
@@ -17,9 +17,13 @@ jest.mock("firebase/firestore", () => ({
 }));
 
 import { doc, updateDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const mockDoc = doc as jest.Mock;
 const mockUpdateDoc = updateDoc as jest.Mock;
+const mockRefFn = ref as jest.Mock;
+const mockUploadBytes = uploadBytes as jest.Mock;
+const mockGetDownloadURL = getDownloadURL as jest.Mock;
 
 describe("updateUserProfile", () => {
   beforeEach(() => jest.clearAllMocks());
@@ -76,5 +80,87 @@ describe("updateUserProfile", () => {
   it("targets the correct user document by userId", async () => {
     await updateUserProfile("user-XYZ", { bio: "test" });
     expect(mockDoc).toHaveBeenCalledWith(expect.anything(), "users", "user-XYZ");
+  });
+});
+
+describe("uploadAvatar", () => {
+  const originalXMLHttpRequest = globalThis.XMLHttpRequest;
+  
+  const mockXHRInstance = {
+    open: jest.fn(),
+    send: jest.fn(),
+    responseType: "",
+    onload: null as (() => void) | null,
+    onerror: null as ((e: unknown) => void) | null,
+    response: new Blob(["fake-image"], { type: "image/jpeg" }),
+  };
+
+  beforeAll(() => {
+    globalThis.XMLHttpRequest = jest.fn(() => mockXHRInstance) as unknown as typeof XMLHttpRequest;
+  });
+
+  afterAll(() => {
+    globalThis.XMLHttpRequest = originalXMLHttpRequest;
+  });
+  
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockXHRInstance.onload = null;
+    mockXHRInstance.onerror = null;
+    mockXHRInstance.send.mockImplementation(() => {
+      mockXHRInstance.onload?.();
+    });
+  });
+
+  it("calls uploadBytes with the correct storage ref and metadata", async () => {
+    const mockRef = { fullPath: "profilePics/user-1.jpg" };
+    mockRefFn.mockReturnValue(mockRef);
+    mockUploadBytes.mockResolvedValue(undefined);
+    mockGetDownloadURL.mockResolvedValue("https://storage.example.com/pic.jpg");
+
+    await uploadAvatar("user-1", "file://local/image.jpg");
+
+    expect(mockUploadBytes).toHaveBeenCalledWith(
+      mockRef,
+      expect.any(Blob),
+      expect.objectContaining({ contentType: "image/jpeg" })
+    );
+  });
+
+  it("returns the download URL from Firebase Storage", async () => {
+    mockRefFn.mockReturnValue({});
+    mockUploadBytes.mockResolvedValue(undefined);
+    mockGetDownloadURL.mockResolvedValue("https://storage.example.com/avatar.jpg");
+
+    const result = await uploadAvatar("user-1", "file://local/image.jpg");
+    expect(result).toBe("https://storage.example.com/avatar.jpg");
+  });
+
+  it("uses the correct storage path profilePics/{userId}.jpg", async () => {
+    mockRefFn.mockReturnValue({});
+    mockUploadBytes.mockResolvedValue(undefined);
+    mockGetDownloadURL.mockResolvedValue("https://example.com/pic.jpg");
+
+    await uploadAvatar("user-XYZ", "file://local/image.jpg");
+    expect(mockRefFn).toHaveBeenCalledWith(expect.anything(), "profilePics/user-XYZ.jpg");
+  });
+
+  it("throws when XHR network request fails", async () => {
+    mockXHRInstance.send.mockImplementation(() => {
+      mockXHRInstance.onerror?.(new Error("Network failure"));
+    });
+
+    await expect(uploadAvatar("user-1", "file://bad-uri")).rejects.toThrow(
+      "Network request failed"
+    );
+  });
+
+  it("opens the XHR GET request against the provided image URI", async () => {
+    mockRefFn.mockReturnValue({});
+    mockUploadBytes.mockResolvedValue(undefined);
+    mockGetDownloadURL.mockResolvedValue("https://example.com/pic.jpg");
+
+    await uploadAvatar("user-1", "file://local/image.jpg");
+    expect(mockXHRInstance.open).toHaveBeenCalledWith("GET", "file://local/image.jpg", true);
   });
 });
