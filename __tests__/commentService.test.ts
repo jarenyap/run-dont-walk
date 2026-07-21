@@ -1,4 +1,4 @@
-import { addComment } from "../services/commentService";
+import { addComment, subscribeToComments } from "../services/commentService";
 
 jest.mock("../firebaseConfig", () => ({ db: {} }));
 
@@ -20,7 +20,7 @@ jest.mock("firebase/firestore", () => ({
   query: jest.fn(),
 }));
 
-const { increment, serverTimestamp } = jest.requireMock("firebase/firestore");
+const { increment, serverTimestamp, onSnapshot, query, orderBy, collection } = jest.requireMock("firebase/firestore");
 
 describe("addComment", () => {
   beforeEach(() => jest.clearAllMocks());
@@ -77,5 +77,64 @@ describe("addComment", () => {
       expect.anything(),
       expect.objectContaining({ authorAvatarUrl: null })
     );
+  });
+});
+
+describe("subscribeToComments", () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it("returns an unsubcribe function", () => {
+    const mockUnsubscribe = jest.fn();
+    onSnapshot.mockReturnValue(mockUnsubscribe);
+
+    const unsub = subscribeToComments("run-1", jest.fn());
+    expect(typeof unsub).toBe("function");
+  });
+
+  it("calls onUpdate with mapped comments when snapshot fires", () => {
+    const mockOnUpdate = jest.fn();
+    const fakeSnapshot = {
+      docs: [
+        { id: "c1", data: () => ({ text: "Hello", authorUid: "u1" }) },
+        { id: "c2", data: () => ({ text: "World", authorUid: "u2" }) },
+      ],
+    };
+
+    onSnapshot.mockImplementation(
+      (_query: unknown, callback: (snap: typeof fakeSnapshot) => void) => {
+        callback(fakeSnapshot);
+        return jest.fn();
+      }
+    );
+
+    subscribeToComments("run-1", mockOnUpdate);
+
+    expect(mockOnUpdate).toHaveBeenCalledTimes(1);
+    expect(mockOnUpdate).toHaveBeenCalledWith([
+      { id: "c1", text: "Hello", authorUid: "u1" },
+      { id: "c2", text: "World", authorUid: "u2" },
+    ]);
+  });
+
+  it("calls onUpdate with empty array when snapshot has no docs", () => {
+    const mockOnUpdate = jest.fn();
+    onSnapshot.mockImplementation(
+      (_query: unknown, callback: (snap: { docs: [] }) => void) => {
+        callback({ docs: [] });
+        return jest.fn();
+      }
+    );
+
+    subscribeToComments("run-1", mockOnUpdate);
+    expect(mockOnUpdate).toHaveBeenCalledWith([]);
+  });
+
+  it("queries the comments subcollection ordered by createdAt asc", () => {
+    onSnapshot.mockReturnValue(jest.fn());
+    subscribeToComments("run-1", jest.fn());
+
+    expect(collection).toHaveBeenCalledWith({}, "runs", "run-1", "comments");
+    expect(orderBy).toHaveBeenCalledWith("createdAt", "asc");
+    expect(query).toHaveBeenCalled();
   });
 });
