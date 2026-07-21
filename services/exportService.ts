@@ -8,17 +8,17 @@ const csvWrapper = (val : string) => {
 }
 
 export const buildCSV = (runs : Run[]) : string => {
-    const header = ["Date", "Distance (km)", "Duration (hh:mm:ss)", "Pace (min/km)", "Title", "Notes\n"];
+    const header = ["Date", "Title", "Type", "Distance (km)", "Duration (hh:mm:ss)", "Pace (min/km)", "Notes\n"];
     const rows = runs.map((run) => {
         const date = run.createdAt.toDate().toISOString().split("T")[0];
         const pace = computePace(run.duration, run.distance);
         return [
             date,
+            csvWrapper(run.title ?? ""),
+            run.type,
             run.distance.toFixed(2),
             run.duration,
             pace,
-            run.type,
-            csvWrapper(run.title ?? ""),
             csvWrapper(run.notes ?? "") 
         ].join(",");
     });
@@ -31,7 +31,8 @@ export const exportCSV = async (runs : Run[]) : Promise<void> => {
     }
     try {
         const csv = buildCSV(runs);
-        const fileName = `walk-dont-run-${Date.now()}.csv`;
+        const timestamp = new Date().toISOString().slice(0, 19).replace("T", "_").replace(/:/g, "-");
+        const fileName = `walk-dont-run-${timestamp}.csv`;
         const fileUri = `${xpoFileSystem.documentDirectory}${fileName}`;
         await xpoFileSystem.writeAsStringAsync(fileUri, csv, {
             encoding: xpoFileSystem.EncodingType.UTF8,
@@ -40,15 +41,19 @@ export const exportCSV = async (runs : Run[]) : Promise<void> => {
         if (!share) {
             throw new Error("Unable to export file.");
         }
+        let handleTimeout: ReturnType<typeof setTimeout> | undefined;
+        const timeout = new Promise<never>((_, reject) => {
+            handleTimeout = setTimeout(() => {
+                reject(new Error("Export timed out"));
+            }, 30000);
+        });
         await Promise.race([
             xpoSharing.shareAsync(fileUri, {
                 mimeType: "text/csv",
                 dialogTitle: "Export run data",
             }),
-            new Promise((_, reject) => 
-                setTimeout(() => 
-                    reject(new Error("Export timed out")), 30000))
-        ]);
+            timeout
+        ]).finally(() => clearTimeout(handleTimeout));
     } catch (e) {
         console.error("Error exporting runs:", e);
         throw e;

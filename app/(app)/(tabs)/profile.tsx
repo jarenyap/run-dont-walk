@@ -789,7 +789,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#F5F2FF",
         borderRadius: 112,
         borderWidth: 1,
-        borderColor: "#EOD6FF",
+        borderColor: "#E0D6FF",
         padding: 14,
         marginTop: 4,
         marginBottom: 8,
@@ -855,7 +855,7 @@ const styles = StyleSheet.create({
     },
     selectionCount: {
         fontSize: 14,
-        color: "666666",
+        color: "#666666",
     },
     selectAll: {
         fontSize: 14,
