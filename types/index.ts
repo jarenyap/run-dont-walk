@@ -5,6 +5,7 @@ export type NewRun = Omit<Run, "id" | "createdAt" | "likes" | "commentCount">;
 export type EventDifficulty = "easy" | "moderate" | "hard";
 export type WarStatus = "active" | "completed";
 export type FollowRequestStatus = "pending" | "accepted" | "rejected";
+export type ClanRole = "Leader" | "Co-Leader" | "Moderator" | "Member";
 
 export interface UserProfile {
   id: string;
@@ -47,14 +48,46 @@ export interface Comment {
   createdAt: Timestamp;
 }
 
+export interface ClanAnnouncement {
+  text: string;
+  authorName: string;
+  updatedAt: Timestamp;
+}
+
 export interface Clan {
   id: string;
   name: string;
   description: string;
   isPrivate: boolean;
-  memberIds: string[];
+  bannerUrl: string | null;
+  leaderId: string;
+  coLeaderIds: string[];
   moderatorIds: string[];
+  memberIds: string[]; // includes leader, co-leaders, moderators, and regular members
+  currentWarId: string | null;
+  announcement: ClanAnnouncement | null;
   createdAt: Timestamp;
+}
+
+export interface ClanJoinRequest {
+  id: string;
+  clanId: string;
+  userId: string;
+  userName: string;
+  userAvatarUrl: string | null;
+  status: FollowRequestStatus;
+  createdAt: Timestamp;
+}
+
+export interface ClanPermissions {
+  canStartWar: boolean;
+  canAcceptJoinRequest: boolean;
+  canRemoveMember: boolean;
+  canPostAnnouncement: boolean;
+  canPromoteDemote: boolean;
+  canTransferLeadership: boolean;
+  canEditClan: boolean;
+  canDisbandClan: boolean;
 }
 
 export interface ClanWar {
