@@ -49,6 +49,7 @@ jest.mock("firebase/firestore", () => ({
   getDocs: (...args: any[]) => mockGetDocs(...args),
   query: jest.fn(() => ({})),
   where: jest.fn(() => ({})),
+  limit: jest.fn(() => ({})),
   updateDoc: (...args: any[]) => mockUpdateDoc(...args),
   deleteDoc: (...args: any[]) => mockDeleteDoc(...args),
   addDoc: (...args: any[]) => mockAddDoc(...args),

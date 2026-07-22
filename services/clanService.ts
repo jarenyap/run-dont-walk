@@ -92,7 +92,12 @@ export async function getUserClans(clanIds: string[]): Promise<Clan[]> {
 
 export async function discoverPublicClans(): Promise<Clan[]> {
   try {
-    const snap = await getDocs(collection(db, "clans"));
+    const q = query(
+      collection(db, "clans"),
+      where("isPrivate", "==", false),
+      limit(50)
+    );
+    const snap = await getDocs(q);
     return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Clan));
   } catch (error) {
     console.error("Error discovering clans:", error);
@@ -102,10 +107,12 @@ export async function discoverPublicClans(): Promise<Clan[]> {
 
 export async function searchPublicClansByName(term: string): Promise<Clan[]> {
   try {
+    const normalized = term.trim().toLowerCase();
     const q = query(
       collection(db, "clans"),
-      where("nameLower", ">=", term),
-      where("nameLower", "<=", term + "\uf8ff"),
+      where("isPrivate", "==", false),
+      where("nameLower", ">=", normalized),
+      where("nameLower", "<=", normalized + "\uf8ff"),
       limit(20)
     );
     const snap = await getDocs(q);
@@ -185,6 +192,26 @@ export async function getJoinRequests(clanId: string): Promise<ClanJoinRequest[]
   } catch (error) {
     console.error("Error fetching join requests:", error);
     throw error;
+  }
+}
+
+export async function hasPendingJoinRequest(
+  clanId: string,
+  userId: string
+): Promise<boolean> {
+  try {
+    const q = query(
+      collection(db, "clanJoinRequests"),
+      where("clanId", "==", clanId),
+      where("userId", "==", userId),
+      where("status", "==", "pending"),
+      limit(1)
+    );
+    const snap = await getDocs(q);
+    return !snap.empty;
+  } catch (error) {
+    console.error("Error checking join request:", error);
+    return false;
   }
 }
 

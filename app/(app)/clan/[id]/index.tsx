@@ -25,7 +25,7 @@ import {
   joinPublicClan,
   requestToJoinClan,
   leaveClan,
-  getJoinRequests,
+  hasPendingJoinRequest,
 } from "../../../../services/clanService";
 import type { Clan } from "../../../../types/index";
 
@@ -50,11 +50,7 @@ export default function ClanHomeScreen() {
   // Check for existing pending join requests when clan loads
   useEffect(() => {
     if (!id || !user) return;
-    getJoinRequests(id).then((requests) => {
-      if (requests.some((r) => r.userId === user.uid)) {
-        setHasRequested(true);
-      }
-    }).catch(() => {});
+    hasPendingJoinRequest(id, user.uid).then(setHasRequested);
   }, [id, user]);
 
   // Track hasRequested when clan data or role changes (must be before early return)
@@ -64,9 +60,7 @@ export default function ClanHomeScreen() {
     if (currentRole !== null) {
       setHasRequested(false);
     } else if (id) {
-      getJoinRequests(id).then((requests) => {
-        setHasRequested(requests.some((r) => r.userId === user.uid));
-      }).catch(() => {});
+      hasPendingJoinRequest(id, user.uid).then(setHasRequested);
     }
   }, [clan, id, user]);
 

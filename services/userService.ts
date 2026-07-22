@@ -1,4 +1,4 @@
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { db, storage } from "../firebaseConfig";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import * as FileSystem from "expo-file-system/legacy";
@@ -64,7 +64,8 @@ export const getUserProfile = async (userId: string): Promise<UserProfile | null
   try {
     const snap = await getDoc(doc(db, "users", userId));
     if (!snap.exists()) return null;
-    return snap.data() as UserProfile;
+    const data = snap.data() as Omit<UserProfile, "id">;
+    return { ...data, id: snap.id };
   } catch (error) {
     console.error("Error fetching user profile:", error);
     throw error;
@@ -74,8 +75,23 @@ export const getUserProfile = async (userId: string): Promise<UserProfile | null
 export const getUserProfiles = async (userIds: string[]): Promise<UserProfile[]> => {
   try {
     if (userIds.length === 0) return [];
-    const profiles = await Promise.all(userIds.map((id) => getUserProfile(id)));
-    return profiles.filter((p): p is UserProfile => p !== null);
+
+    const profiles: UserProfile[] = [];
+    const MAX_IN_BATCH = 30;
+
+    for (let i = 0; i < userIds.length; i += MAX_IN_BATCH) {
+      const chunk = userIds.slice(i, i + MAX_IN_BATCH);
+      const q = query(
+        collection(db, "users"),
+        where("__name__", "in", chunk)
+      );
+      const snap = await getDocs(q);
+      snap.docs.forEach((d) => {
+        profiles.push({ id: d.id, ...d.data() } as UserProfile);
+      });
+    }
+
+    return profiles;
   } catch (error) {
     console.error("Error fetching user profiles:", error);
     throw error;

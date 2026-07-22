@@ -1,4 +1,4 @@
-import { updateUserProfile, uploadAvatar } from "../services/userService";
+import { updateUserProfile, uploadAvatar, getUserProfile, getUserProfiles } from "../services/userService";
 
 jest.mock("../firebaseConfig", () => ({ db: {}, storage: {} }));
 jest.mock("expo-file-system/legacy", () => ({}));
@@ -13,13 +13,20 @@ jest.mock("firebase/storage", () => ({
 
 jest.mock("firebase/firestore", () => ({
   doc: jest.fn((_db: any, _col: any, id: any) => ({ id })),
+  getDoc: jest.fn(),
+  getDocs: jest.fn(),
   updateDoc: jest.fn().mockResolvedValue(undefined),
+  collection: jest.fn(),
+  query: jest.fn(),
+  where: jest.fn(),
 }));
 
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, getDoc, getDocs } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const mockDoc = doc as jest.Mock;
+const mockGetDoc = getDoc as jest.Mock;
+const mockGetDocs = getDocs as jest.Mock;
 const mockUpdateDoc = updateDoc as jest.Mock;
 const mockRefFn = ref as jest.Mock;
 const mockUploadBytes = uploadBytes as jest.Mock;
@@ -162,5 +169,59 @@ describe("uploadAvatar", () => {
 
     await uploadAvatar("user-1", "file://local/image.jpg");
     expect(mockXHRInstance.open).toHaveBeenCalledWith("GET", "file://local/image.jpg", true);
+  });
+});
+
+describe("getUserProfile", () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it("returns UserProfile with id from snap.id when doc exists", async () => {
+    mockGetDoc.mockResolvedValue({
+      exists: () => true,
+      id: "user-1",
+      data: () => ({ name: "Jaren", email: "jaren@test.com" }),
+    });
+    const result = await getUserProfile("user-1");
+    expect(result).not.toBeNull();
+    expect(result!.id).toBe("user-1");
+    expect(result!.name).toBe("Jaren");
+  });
+
+  it("returns null when doc does not exist", async () => {
+    mockGetDoc.mockResolvedValue({ exists: () => false });
+    const result = await getUserProfile("missing-user");
+    expect(result).toBeNull();
+  });
+
+  it("rethrows on Firestore error", async () => {
+    mockGetDoc.mockRejectedValue(new Error("Firestore error"));
+    await expect(getUserProfile("user-1")).rejects.toThrow("Firestore error");
+  });
+});
+
+describe("getUserProfiles", () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it("returns empty array when userIds is empty", async () => {
+    const result = await getUserProfiles([]);
+    expect(result).toEqual([]);
+  });
+
+  it("batches reads and returns profiles with correct ids", async () => {
+    mockGetDocs.mockResolvedValue({
+      docs: [
+        { id: "user-1", data: () => ({ name: "Alice" }) },
+        { id: "user-2", data: () => ({ name: "Bob" }) },
+      ],
+    });
+    const result = await getUserProfiles(["user-1", "user-2"]);
+    expect(result).toHaveLength(2);
+    expect(result[0].id).toBe("user-1");
+    expect(result[1].id).toBe("user-2");
+  });
+
+  it("rethrows on Firestore error", async () => {
+    mockGetDocs.mockRejectedValue(new Error("Query failed"));
+    await expect(getUserProfiles(["user-1"])).rejects.toThrow("Query failed");
   });
 });
