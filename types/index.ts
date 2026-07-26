@@ -6,6 +6,8 @@ export type EventDifficulty = "easy" | "moderate" | "hard";
 export type WarStatus = "active" | "completed";
 export type FollowRequestStatus = "pending" | "accepted" | "rejected";
 export type ClanRole = "Leader" | "Co-Leader" | "Moderator" | "Member";
+export type NewEvent = Omit<Event, "id" | "creatorId" | "creatorName" | "creatorAvatarUrl" | 
+  "rsvpIds" | "completedAt" | "createdAt">;
 
 export interface UserProfile {
   id: string;
@@ -108,14 +110,17 @@ export interface ClanWar {
 export interface Event {
   id: string;
   creatorId: string;
+  creatorName: string;
+  creatorAvatarUrl: string | null;
   title: string;
   location: string;
   distance: number;
   difficulty: EventDifficulty;
   scheduledAt: Timestamp;
   rsvpIds: string[];
+  createdAt: Timestamp;
   completedAt: Timestamp | null;
-  participantIds: string[];
+  maxParticipants: number;
 }
 
 export interface FollowRequest {
