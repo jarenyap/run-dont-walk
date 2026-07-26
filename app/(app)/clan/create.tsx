@@ -5,7 +5,10 @@ import { useRouter } from "expo-router";
 import { GlobeIcon, LockSimpleIcon, CameraIcon } from "phosphor-react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useAuth } from "../../../context/Auth";
-import { createClan } from "../../../services/clanService";
+import { createClan, uploadClanBanner } from "../../../services/clanService";
+import UserAvatar from "../../../components/UserAvatar";
+import { colors, spacing, radius } from "../../../theme";
+
 
 export default function CreateClanScreen() {
   const insets = useSafeAreaInsets();
@@ -14,7 +17,29 @@ export default function CreateClanScreen() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
+  const [bannerUri, setBannerUri] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const pickBanner = async () => {
+    const { status } =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission Needed",
+        "Please enable camera roll permissions."
+      );
+      return;
+    }
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+    });
+    if (!res.canceled) {
+      setBannerUri(res.assets[0].uri);
+    }
+  };
 
   const handleCreate = async () => {
     if (!user || !name.trim()) return;
@@ -142,15 +167,25 @@ export default function CreateClanScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF", paddingHorizontal: 16 },
+  container: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 16
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingBottom: 16,
   },
-  cancelBtn: { color: "#8E8E93", fontSize: 15 },
-  headerTitle: { color: "#1A1A1A", fontSize: 17, fontWeight: "600" },
+  cancelBtn: {color: "#8E8E93",
+    fontSize: 15
+  },
+  headerTitle: {
+    color: "#1A1A1A",
+    fontSize: 17,
+    fontWeight: "600"
+  },
   createBtn: {
     backgroundColor: "#FF6B35",
     paddingHorizontal: 16,
@@ -159,12 +194,46 @@ const styles = StyleSheet.create({
     minWidth: 64,
     alignItems: "center",
   },
-  createBtnDisabled: { backgroundColor: "#D1D1D6" },
-  createBtnText: { color: "#FFFFFF", fontWeight: "600", fontSize: 14 },
-  field: { marginBottom: 20 },
-  labelRow: { flexDirection: "row", justifyContent: "space-between" },
-  label: { color: "#8E8E93", fontSize: 13, fontWeight: "600", marginBottom: 8 },
-  counter: { color: "#8E8E93", fontSize: 12 },
+  createBtnDisabled: {
+    backgroundColor: "#D1D1D6"
+  },
+  createBtnText: {
+    color: "#FFFFFF",
+    fontWeight: "600",
+    fontSize: 14
+  },
+  bannerArea: {
+    alignItems: "center",
+    marginBottom: spacing.lg,
+    gap: spacing.sm,
+  },
+  bannerHint: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  bannerHintText: {
+    color: colors.accentBlue,
+    fontSize: 13,
+    fontWeight: "500",
+  },
+  field: {
+    marginBottom: 20
+  },
+  labelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between"
+  },
+  label: {
+    color: "#8E8E93",
+    fontSize: 13,
+    fontWeight: "600",
+    marginBottom: 8
+  },
+  counter: {
+    color: "#8E8E93",
+    fontSize: 12
+  },
   input: {
     backgroundColor: "#F5F5F0",
     borderRadius: 12,
@@ -174,8 +243,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E0E0DC",
   },
-  textArea: { minHeight: 80, textAlignVertical: "top" },
-  visibilityRow: { flexDirection: "row", gap: 12 },
+  textArea: {
+    minHeight: 80,
+    textAlignVertical: "top"
+  },
+  visibilityRow: {
+    flexDirection: "row",
+    gap: 12
+  },
   visCard: {
     flex: 1,
     backgroundColor: "#F5F5F0",
@@ -185,7 +260,17 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#E0E0DC",
   },
-  visCardSelected: { borderColor: "#FF6B35", backgroundColor: "#FF6B3522" },
-  visIcon: { fontSize: 24, marginBottom: 6 },
-  visLabel: { color: "#1A1A1A", fontSize: 14, fontWeight: "600" },
+  visCardSelected: {
+    borderColor: "#FF6B35",
+    backgroundColor: "#FF6B3522"
+  },
+  visIcon: {
+    fontSize: 24,
+    marginBottom: 6
+  },
+  visLabel: {
+    color: "#1A1A1A",
+    fontSize: 14,
+    fontWeight: "600"
+  },
 });

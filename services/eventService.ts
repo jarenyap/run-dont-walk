@@ -1,11 +1,9 @@
 import {
     collection, doc, addDoc, getDoc, updateDoc, deleteDoc, query, where, orderBy, 
-    onSnapshot, runTransaction, serverTimestamp, arrayUnion, arrayRemove, Timestamp,
+    onSnapshot, runTransaction, serverTimestamp, arrayUnion, arrayRemove
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
-import { deriveClanRole } from "./clanService";
 import type { Event, NewEvent } from "../types/index";
-import events from "../app/(app)/(tabs)/events";
 
 export function eventFull(event: Event): boolean {
     return event.maxParticipants > 0 && event.rsvpIds.length >= event.maxParticipants;
@@ -54,7 +52,7 @@ export async function rsvpEvent(eventId: string, uid:string): Promise<void> {
             const snapshot = await trans.get(ref);
             if (!snapshot.exists()) throw new Error("Event not found");
             const event = { id: snapshot.id, ...snapshot.data() } as Event;
-            if (event.completedAt !== null) throw new Error("Event has already ended");
+            if (pastEvent(event)) throw new Error("Event has already ended");
             if (rsvped(event, uid)) throw new Error("User already RSVPed");
             if (eventFull(event)) throw new Error("Event is full");
             trans.update(ref, { rsvpIds: arrayUnion(uid) });
@@ -124,7 +122,7 @@ export function discoverEvents(
     const feedIds = [uid, ...followingIds];
     const qry = query(
         collection(db, "events"),
-        where("creatorId", "in", feedIds.slice(0, 20)),
+        where("creatorId", "in", feedIds.slice(0, 10)),
         orderBy("scheduledAt", "asc")
     );
     return onSnapshot(qry, (snapshot) => {

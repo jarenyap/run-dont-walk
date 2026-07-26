@@ -40,7 +40,6 @@ export default function EventsScreen() {
                         await deleteEvent(event, user!.uid);
                     } catch (e) {
                         Alert.alert("Error", "Could not delete event.");
-                        throw e;
                     }
                 }
             },
@@ -58,7 +57,6 @@ export default function EventsScreen() {
                         await eventCompleted(event, user!.uid);
                     } catch (e) {
                         Alert.alert("Could not complete event:", e instanceof Error ? e.message : "Please try again later.");
-                        throw e;
                     }
                 },
             },

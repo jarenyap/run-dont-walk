@@ -128,5 +128,5 @@ export interface FollowRequest {
   fromUserId: string;
   toUserId: string;
   status: FollowRequestStatus;
-  createdAt: Timestamp;
+  createdAt: Timestamp | FieldValue;
 }

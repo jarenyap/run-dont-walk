@@ -118,7 +118,7 @@ const isValid =
             <View style={styles.field}>
                 <Text style={styles.label}>Distance (km)</Text>
                 <TextInput
-                    style={styles.field}
+                    style={styles.input}
                     value={distance}
                     onChangeText={(text) => {
                         const num = text.replace(/[^0-9.]/g, "");
@@ -216,7 +216,8 @@ const styles = StyleSheet.create({
         backgroundColor: "#F5F5F0",
         padding: 14,
         borderRadius: 12,
-        borderColor: "#E0E0DC"
+        borderColor: "#E0E0DC",
+        borderWidth: 1
     },
     locationRow: {
         flexDirection: "row",
