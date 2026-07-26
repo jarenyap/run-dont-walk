@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { GlobeIcon, LockSimpleIcon, CameraIcon } from "phosphor-react-native";
+import * as ImagePicker from "expo-image-picker";
 import { useAuth } from "../../../context/Auth";
 import { createClan } from "../../../services/clanService";
 
@@ -18,7 +20,28 @@ export default function CreateClanScreen() {
     if (!user || !name.trim()) return;
     setSubmitting(true);
     try {
-      const clanId = await createClan(user.uid, name.trim(), description.trim(), isPrivate);
+      const clanId = await createClan(
+        user.uid,
+        name.trim(),
+        description.trim(),
+        isPrivate
+      );
+
+      if (bannerUri) {
+        try {
+          const url = await uploadClanBanner(clanId, bannerUri);
+          const { updateClanDetails } = await import(
+            "../../../services/clanService"
+          );
+          await updateClanDetails(clanId, { bannerUrl: url });
+        } catch {
+          Alert.alert(
+            "Banner Upload Failed",
+            "Your clan was created, but the banner couldn't be uploaded. You can change it later in clan settings."
+          );
+        }
+      }
+
       router.replace(`/clan/${clanId}`);
     } catch (e) {
       Alert.alert("Error", "Could not create clan. Please try again.");
@@ -46,6 +69,21 @@ export default function CreateClanScreen() {
           )}
         </TouchableOpacity>
       </View>
+
+      <TouchableOpacity style={styles.bannerArea} onPress={pickBanner}>
+        <UserAvatar
+          uri={bannerUri}
+          name={name || "?"}
+          size={80}
+          shape="rounded"
+        />
+        <View style={styles.bannerHint}>
+          <CameraIcon size={16} color={colors.accentBlue} />
+          <Text style={styles.bannerHintText}>
+            {bannerUri ? "Change banner" : "Add clan banner"}
+          </Text>
+        </View>
+      </TouchableOpacity>
 
       <View style={styles.field}>
         <View style={styles.labelRow}>
@@ -81,14 +119,20 @@ export default function CreateClanScreen() {
             style={[styles.visCard, !isPrivate && styles.visCardSelected]}
             onPress={() => setIsPrivate(false)}
           >
-            <Text style={styles.visIcon}>🌐</Text>
+            <GlobeIcon
+              size={24}
+              color={!isPrivate ? colors.accentBlue : colors.textTertiary}
+            />
             <Text style={styles.visLabel}>Public</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.visCard, isPrivate && styles.visCardSelected]}
             onPress={() => setIsPrivate(true)}
           >
-            <Text style={styles.visIcon}>🔒</Text>
+            <LockSimpleIcon
+              size={24}
+              color={isPrivate ? colors.accentBlue : colors.textTertiary}
+            />
             <Text style={styles.visLabel}>Private</Text>
           </TouchableOpacity>
         </View>
