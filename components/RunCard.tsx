@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Timestamp } from "firebase/firestore";
-import { CheckCircle, Circle } from "phosphor-react-native";
+import { CheckCircle, CircleIcon } from "phosphor-react-native";
 import { Run } from "../types";
 import { computePace } from "../utils/runUtils";
 import UserAvatar from "./UserAvatar";
@@ -45,7 +45,7 @@ export default function RunCard({
           {selected ? (
             <CheckCircle size={22} color={colors.accentBlue} weight="fill" />
           ) : (
-            <Circle size={22} color={colors.textTertiary} />
+            <CircleIcon size={22} color={colors.textTertiary} />
           )}
         </View>
       )}

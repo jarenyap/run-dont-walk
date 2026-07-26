@@ -1,7 +1,8 @@
 import { collection, doc, getDoc, getDocs, query, where, orderBy, startAt, endAt, writeBatch, updateDoc, deleteDoc, arrayUnion, arrayRemove, serverTimestamp, onSnapshot, addDoc, limit } from "firebase/firestore";
-import { db, storage } from "../firebaseConfig"
+import { db, storage } from "../firebaseConfig";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import type { Clan, ClanRole, ClanPermissions, ClanJoinRequest, } from "../types/index"
+import type { Clan, ClanRole, ClanPermissions, ClanJoinRequest } from "../types/index";
+import { getClanActiveWars } from "./clanWarService";
 
 export function deriveClanRole(clan: Clan, uid: string): ClanRole | null {
     if (clan.leaderId === uid) return "Leader";
@@ -65,63 +66,43 @@ export async function createClan(
 }
 
 export async function getClanById(clanId: string): Promise<Clan | null> {
-    try {
-        const snap = await getDoc(doc(db, "clans", clanId));
-        if(!snap.exists()) return null;
-        return { id: snap.id, ...snap.data() } as Clan;
-    } catch (error) {
-        console.error("Error fetching clan:", error);
-        throw error;
-    }
+    const snap = await getDoc(doc(db, "clans", clanId));
+    if (!snap.exists()) return null;
+    return { id: snap.id, ...snap.data() } as Clan;
 }
 
 export async function getUserClans(clanIds: string[]): Promise<Clan[]> {
-  try {
-    if (clanIds.length === 0) return [];
-    const clans = await Promise.all(
-      clanIds.map(async (id) => {
-        const snap = await getDoc(doc(db, "clans", id));
-        return snap.exists() ? ({ id: snap.id, ...snap.data() } as Clan) : null;
-      })
-    );
-    return clans.filter((c): c is Clan => c !== null);
-  } catch (error) {
-    console.error("Error fetching user clans:", error);
-    throw error;
-  }
+  if (clanIds.length === 0) return [];
+  const clans = await Promise.all(
+    clanIds.map(async (id) => {
+      const snap = await getDoc(doc(db, "clans", id));
+      return snap.exists() ? ({ id: snap.id, ...snap.data() } as Clan) : null;
+    })
+  );
+  return clans.filter((c): c is Clan => c !== null);
 }
 
 export async function discoverPublicClans(): Promise<Clan[]> {
-  try {
-    const q = query(
-      collection(db, "clans"),
-      where("isPrivate", "==", false),
-      limit(50)
-    );
-    const snap = await getDocs(q);
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Clan));
-  } catch (error) {
-    console.error("Error discovering clans:", error);
-    throw error;
-  }
+  const q = query(
+    collection(db, "clans"),
+    where("isPrivate", "==", false),
+    limit(50)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Clan));
 }
 
 export async function searchAllClansByName(term: string): Promise<Clan[]> {
-  try {
-    const normalized = term.trim().toLowerCase();
-    const q = query(
-      collection(db, "clans"),
-      orderBy("nameLower"),
-      startAt(normalized),
-      endAt(normalized + "\uf8ff"),
-      limit(20)
-    );
-    const snap = await getDocs(q);
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Clan));
-  } catch (error) {
-    console.error("Error searching clans:", error);
-    throw error;
-  }
+  const normalized = term.trim().toLowerCase();
+  const q = query(
+    collection(db, "clans"),
+    orderBy("nameLower"),
+    startAt(normalized),
+    endAt(normalized + "\uf8ff"),
+    limit(20)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Clan));
 }
 
 export function subscribeToClan(
@@ -147,7 +128,36 @@ export function subscribeToJoinRequests(
   });
 }
 
+export async function isUserInWarWithClan(
+  uid: string,
+  targetClanId: string
+): Promise<boolean> {
+  const userSnap = await getDoc(doc(db, "users", uid));
+  if (!userSnap.exists()) return false;
+  const clanIds: string[] = userSnap.data().clanIds ?? [];
+  for (const cid of clanIds) {
+    try {
+      const wars = await getClanActiveWars(cid);
+      for (const w of wars) {
+        if (
+          (w.clan1Id === targetClanId || w.clan2Id === targetClanId) &&
+          (w.status === "active" || w.status === "pending")
+        ) {
+          return true;
+        }
+      }
+    } catch {
+      // if war query fails, err on the safe side — don't block
+      continue;
+    }
+  }
+  return false;
+}
+
 export async function joinPublicClan(clanId: string, uid: string): Promise<void> {
+  if (await isUserInWarWithClan(uid, clanId)) {
+    throw new Error("Cannot join a clan you are currently at war with");
+  }
   try {
     const batch = writeBatch(db);
     batch.update(doc(db, "clans", clanId), { memberIds: arrayUnion(uid) });
@@ -165,55 +175,40 @@ export async function requestToJoinClan(
   userName: string,
   userAvatarUrl: string | null
 ): Promise<string> {
-  try {
-    const ref = await addDoc(collection(db, "clanJoinRequests"), {
-      clanId,
-      userId,
-      userName,
-      userAvatarUrl,
-      status: "pending",
-      createdAt: serverTimestamp(),
-    });
-    return ref.id;
-  } catch (error) {
-    console.error("Error requesting to join clan:", error);
-    throw error;
-  }
+  const ref = await addDoc(collection(db, "clanJoinRequests"), {
+    clanId,
+    userId,
+    userName,
+    userAvatarUrl,
+    status: "pending",
+    createdAt: serverTimestamp(),
+  });
+  return ref.id;
 }
 
 export async function getJoinRequests(clanId: string): Promise<ClanJoinRequest[]> {
-  try {
-    const q = query(
-      collection(db, "clanJoinRequests"),
-      where("clanId", "==", clanId),
-      where("status", "==", "pending")
-    );
-    const snap = await getDocs(q);
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as ClanJoinRequest));
-  } catch (error) {
-    console.error("Error fetching join requests:", error);
-    throw error;
-  }
+  const q = query(
+    collection(db, "clanJoinRequests"),
+    where("clanId", "==", clanId),
+    where("status", "==", "pending")
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as ClanJoinRequest));
 }
 
 export async function hasPendingJoinRequest(
   clanId: string,
   userId: string
 ): Promise<boolean> {
-  try {
-    const q = query(
-      collection(db, "clanJoinRequests"),
-      where("clanId", "==", clanId),
-      where("userId", "==", userId),
-      where("status", "==", "pending"),
-      limit(1)
-    );
-    const snap = await getDocs(q);
-    return !snap.empty;
-  } catch (error) {
-    console.error("Error checking join request:", error);
-    return false;
-  }
+  const q = query(
+    collection(db, "clanJoinRequests"),
+    where("clanId", "==", clanId),
+    where("userId", "==", userId),
+    where("status", "==", "pending"),
+    limit(1)
+  );
+  const snap = await getDocs(q);
+  return !snap.empty;
 }
 
 export async function acceptJoinRequest(
@@ -221,6 +216,9 @@ export async function acceptJoinRequest(
   clanId: string,
   userId: string
 ): Promise<void> {
+  if (await isUserInWarWithClan(userId, clanId)) {
+    throw new Error("Cannot accept a user who is currently at war with this clan");
+  }
   try {
     const batch = writeBatch(db);
     batch.update(doc(db, "clans", clanId), { memberIds: arrayUnion(userId) });
@@ -234,12 +232,7 @@ export async function acceptJoinRequest(
 }
 
 export async function declineJoinRequest(requestId: string): Promise<void> {
-  try {
-    await updateDoc(doc(db, "clanJoinRequests", requestId), { status: "rejected" });
-  } catch (error) {
-    console.error("Error declining join request:", error);
-    throw error;
-  }
+  await updateDoc(doc(db, "clanJoinRequests", requestId), { status: "rejected" });
 }
 
 export async function removeMember(clanId: string, uid: string): Promise<void> {
@@ -263,58 +256,33 @@ export async function leaveClan(clanId: string, uid: string): Promise<void> {
 }
 
 export async function promoteToModerator(clanId: string, uid: string): Promise<void> {
-  try {
-    await updateDoc(doc(db, "clans", clanId), { moderatorIds: arrayUnion(uid) });
-  } catch (error) {
-    console.error("Error promoting member:", error);
-    throw error;
-  }
+  await updateDoc(doc(db, "clans", clanId), { moderatorIds: arrayUnion(uid) });
 }
 
 export async function demoteModerator(clanId: string, uid: string): Promise<void> {
-  try {
-    await updateDoc(doc(db, "clans", clanId), { moderatorIds: arrayRemove(uid) });
-  } catch (error) {
-    console.error("Error demoting moderator:", error);
-    throw error;
-  }
+  await updateDoc(doc(db, "clans", clanId), { moderatorIds: arrayRemove(uid) });
 }
 
 export async function promoteToCoLeader(clanId: string, uid: string): Promise<void> {
-  try {
-    const batch = writeBatch(db);
-    batch.update(doc(db, "clans", clanId), {
-      coLeaderIds: arrayUnion(uid),
-      moderatorIds: arrayRemove(uid),
-    });
-    await batch.commit();
-  } catch (error) {
-    console.error("Error promoting to co-leader:", error);
-    throw error;
-  }
+  const batch = writeBatch(db);
+  batch.update(doc(db, "clans", clanId), {
+    coLeaderIds: arrayUnion(uid),
+    moderatorIds: arrayRemove(uid),
+  });
+  await batch.commit();
 }
 
 export async function demoteCoLeader(clanId: string, uid: string): Promise<void> {
-  try {
-    await updateDoc(doc(db, "clans", clanId), { coLeaderIds: arrayRemove(uid) });
-  } catch (error) {
-    console.error("Error demoting co-leader:", error);
-    throw error;
-  }
+  await updateDoc(doc(db, "clans", clanId), { coLeaderIds: arrayRemove(uid) });
 }
 
 export async function demoteCoLeaderToModerator(clanId: string, uid: string): Promise<void> {
-  try {
-    const batch = writeBatch(db);
-    batch.update(doc(db, "clans", clanId), {
-      coLeaderIds: arrayRemove(uid),
-      moderatorIds: arrayUnion(uid),
-    });
-    await batch.commit();
-  } catch (error) {
-    console.error("Error demoting co-leader to moderator:", error);
-    throw error;
-  }
+  const batch = writeBatch(db);
+  batch.update(doc(db, "clans", clanId), {
+    coLeaderIds: arrayRemove(uid),
+    moderatorIds: arrayUnion(uid),
+  });
+  await batch.commit();
 }
 
 export async function transferLeadership(
@@ -324,8 +292,13 @@ export async function transferLeadership(
 ): Promise<void> {
   try {
     const batch = writeBatch(db);
+    // remove new leader from coLeaderIds (they may have been co-leader)
     batch.update(doc(db, "clans", clanId), {
       leaderId: newLeaderUid,
+      coLeaderIds: arrayRemove(newLeaderUid),
+    });
+    // promote old leader to co-leader
+    batch.update(doc(db, "clans", clanId), {
       coLeaderIds: arrayUnion(currentLeaderUid),
     });
     await batch.commit();
@@ -340,35 +313,46 @@ export async function postAnnouncement(
   authorName: string,
   text: string
 ): Promise<void> {
-  try {
-    await updateDoc(doc(db, "clans", clanId), {
-      announcement: { text, authorName, updatedAt: serverTimestamp() },
-    });
-  } catch (error) {
-    console.error("Error posting announcement:", error);
-    throw error;
-  }
+  await updateDoc(doc(db, "clans", clanId), {
+    announcement: { text, authorName, updatedAt: serverTimestamp() },
+  });
 }
 
 export async function updateClanDetails(
   clanId: string,
   updates: { name?: string; description?: string; isPrivate?: boolean; bannerUrl?: string | null }
 ): Promise<void> {
-  try {
-    const finalUpdates: typeof updates & { nameLower?: string } = { ...updates };
-    if (updates.name) {
-        finalUpdates.nameLower = updates.name.toLowerCase();
-    }
-    await updateDoc(doc(db, "clans", clanId), finalUpdates);
-  } catch (error) {
-    console.error("Error updating clan details:", error);
-    throw error;
+  const finalUpdates: typeof updates & { nameLower?: string } = { ...updates };
+  if (updates.name) {
+    finalUpdates.nameLower = updates.name.toLowerCase();
   }
+  await updateDoc(doc(db, "clans", clanId), finalUpdates);
 }
 
 export async function disbandClan(clanId: string): Promise<void> {
   try {
-    await deleteDoc(doc(db, "clans", clanId));
+    const clanSnap = await getDoc(doc(db, "clans", clanId));
+    if (!clanSnap.exists()) return;
+    const memberIds: string[] = clanSnap.data().memberIds ?? [];
+
+    const batch = writeBatch(db);
+    // remove clanId from every member's user doc
+    for (const uid of memberIds) {
+      batch.update(doc(db, "users", uid), {
+        clanIds: arrayRemove(clanId),
+      });
+    }
+    // delete all pending join requests for this clan
+    const requestsSnap = await getDocs(
+      query(
+        collection(db, "clanJoinRequests"),
+        where("clanId", "==", clanId)
+      )
+    );
+    requestsSnap.forEach((d) => batch.delete(d.ref));
+    // delete the clan doc
+    batch.delete(doc(db, "clans", clanId));
+    await batch.commit();
   } catch (error) {
     console.error("Error disbanding clan:", error);
     throw error;

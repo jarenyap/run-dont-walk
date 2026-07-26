@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -26,22 +25,7 @@ import UserAvatar from "../../../components/UserAvatar";
 import RunTypeBadge from "../../../components/RunTypeBadge";
 import { colors, spacing, radius, typography } from "../../../theme";
 
-function getRelativeTime(dateValue: any): string {
-  const date =
-    typeof dateValue?.toDate === "function"
-      ? dateValue.toDate()
-      : new Date(dateValue);
-  const diffMs = Date.now() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  return `${diffDays}d ago`;
-}
-
+import { formatRelativeTime } from "../../../utils/time";
 export default function RunDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
@@ -89,12 +73,8 @@ export default function RunDetailScreen() {
     if (!user?.uid || !run || sending) return;
     if (!commentText.trim()) return;
 
-    const authorName =
-      (user as any)?.displayName ||
-      (user as any)?.name ||
-      (user as any)?.email ||
-      "You";
-    const authorAvatarURL = (user as any)?.photoUrl || null;
+    const authorName = user.displayName || user.email || "You";
+    const authorAvatarURL = user.photoURL || null;
 
     setSending(true);
     try {
@@ -154,7 +134,7 @@ export default function RunDetailScreen() {
                     {run.authorName}
                   </Text>
                   <Text style={styles.timestamp}>
-                    {getRelativeTime(run.createdAt)}
+                    {formatRelativeTime(run.createdAt)}
                   </Text>
                 </View>
               </View>
@@ -180,9 +160,11 @@ export default function RunDetailScreen() {
                 disabled={likeLoading}
               >
                 {likeLoading ? (
-                  <ActivityIndicator
-                    size="small"
+                  <Heart
+                    size={18}
                     color={colors.accentCoral}
+                    weight="fill"
+                    style={{ opacity: 0.4 }}
                   />
                 ) : (
                   <Heart
@@ -232,7 +214,7 @@ export default function RunDetailScreen() {
                   {item.authorName}
                 </Text>
                 <Text style={styles.commentTime}>
-                  {getRelativeTime(item.createdAt)}
+                  {formatRelativeTime(item.createdAt)}
                 </Text>
               </View>
               <Text style={styles.commentText}>{item.text}</Text>

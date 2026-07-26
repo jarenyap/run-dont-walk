@@ -2,6 +2,8 @@ import { db } from "../firebaseConfig";
 import { doc, writeBatch, increment, arrayUnion, arrayRemove } from "firebase/firestore";
 
 export async function followUser(currentId: string, targetId: string): Promise<void> {
+    if (currentId === targetId) return;
+
     const batch = writeBatch(db);
 
     batch.update(doc(db, "users", currentId), {

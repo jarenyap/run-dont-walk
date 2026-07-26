@@ -43,21 +43,16 @@ export const logRun = async (newRun: NewRun): Promise<string> => {
 };
 
 export const getUserRuns = async (userId: string): Promise<Run[]> => {
-    try {
-        const q = query(
-            collection(db, "runs"),
-            where("userId", "==", userId),
-            orderBy("createdAt", "desc")
-        );
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-        } as Run));
-        } catch (error) {
-            console.error("Error fetching user runs:", error);
-            throw error;
-        }
+    const q = query(
+        collection(db, "runs"),
+        where("userId", "==", userId),
+        orderBy("createdAt", "desc")
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+    } as Run));
 };
 
 export const subscribeToUserRuns = (

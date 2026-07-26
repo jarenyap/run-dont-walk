@@ -8,7 +8,6 @@ import {
   Modal,
   TextInput,
   FlatList,
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -270,7 +269,7 @@ export default function ClanWarScreen() {
                 disabled={handlingWar}
               >
                 {handlingWar ? (
-                  <ActivityIndicator color="#FFF" size="small" />
+                  <Text style={styles.acceptBtnText}>Accepting…</Text>
                 ) : (
                   <Text style={styles.acceptBtnText}>Accept Challenge</Text>
                 )}
@@ -474,7 +473,7 @@ export default function ClanWarScreen() {
                         {busyClans.has(item.id) ? (
                           <Text style={styles.challengeSmallBtnText}>In a war</Text>
                         ) : challenging === item.id ? (
-                          <ActivityIndicator color="#FFF" size="small" />
+                          <Text style={styles.challengeSmallBtnText}>Challenging…</Text>
                         ) : (
                           <Text style={styles.challengeSmallBtnText}>Challenge</Text>
                         )}

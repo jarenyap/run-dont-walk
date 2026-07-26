@@ -6,8 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
+  FlatList,
   TextInput,
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -254,7 +254,7 @@ export default function ClanHomeScreen() {
             disabled={joining || hasRequested}
           >
             {joining ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
+              <Text style={styles.joinBtnText}>Joining…</Text>
             ) : (
               <Text style={styles.joinBtnText}>
                 {hasRequested
@@ -436,7 +436,7 @@ export default function ClanHomeScreen() {
                   disabled={!announcementText.trim() || posting}
                 >
                   {posting ? (
-                    <ActivityIndicator color="#FFFFFF" size="small" />
+                    <Text style={styles.modalPostText}>Posting…</Text>
                   ) : (
                     <Text style={styles.modalPostText}>Post</Text>
                   )}

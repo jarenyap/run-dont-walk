@@ -38,7 +38,6 @@ export interface ClanWarWithId extends ClanWarDoc {
   id: string;
 }
 
-// creates a new war document and sets currentWarId on both clans
 export async function challengeClan(
   challengerClanId: string,
   challengerClanName: string,
@@ -93,19 +92,16 @@ export async function challengeClan(
   return warRef.id;
 }
 
-// flips status to active and starts the 14-day timer
 export async function acceptChallenge(warId: string): Promise<void> {
-  const now = Date.now();
   const twoWeeksMs = 14 * 24 * 60 * 60 * 1000;
 
   await updateDoc(doc(db, "clanWars", warId), {
     status: "active",
     startedAt: serverTimestamp(),
-    endsAt: new Date(now + twoWeeksMs),
+    endsAt: new Date(Date.now() + twoWeeksMs),
   });
 }
 
-// deletes the war and clears currentWarId on both clans
 export async function declineChallenge(
   warId: string,
   clan1Id: string,
@@ -125,14 +121,12 @@ export async function cancelChallenge(
 ): Promise<void> {
   return declineChallenge(warId, clan1Id, clan2Id);
 }
-
 export async function getClanWar(warId: string): Promise<ClanWarWithId | null> {
   const snap = await getDoc(doc(db, "clanWars", warId));
   if (!snap.exists()) return null;
   return { id: snap.id, ...snap.data() } as ClanWarWithId;
 }
 
-// real-time subscription to a single war document
 export function subscribeToClanWar(
   warId: string,
   onUpdate: (war: ClanWarWithId | null) => void
@@ -142,7 +136,6 @@ export function subscribeToClanWar(
   });
 }
 
-// fetches active and pending wars a clan is involved in (clan1 or clan2)
 export async function getClanActiveWars(clanId: string): Promise<ClanWarWithId[]> {
   const [snap1, snap2] = await Promise.all([
     getDocs(query(
@@ -163,7 +156,6 @@ export async function getClanActiveWars(clanId: string): Promise<ClanWarWithId[]
   return wars;
 }
 
-// atomically adds distance to a clan in an active war (must run in a transaction)
 export async function incrementClanDistance(
   warId: string,
   clanId: string,
@@ -181,7 +173,6 @@ export async function incrementClanDistance(
   });
 }
 
-// marks an expired war as completed, sets winner, and clears currentWarId on both clans
 export async function checkAndCompleteWar(warId: string): Promise<void> {
   const warRef = doc(db, "clanWars", warId);
 
@@ -210,7 +201,9 @@ export async function checkAndCompleteWar(warId: string): Promise<void> {
   });
 }
 
-// called after every run log — finds active wars and increments clan distance
+// called after every run log — finds active wars via clan docs' currentWarId
+// and increments clan distance. Uses currentWarId instead of querying
+// clanWars by clan1Id/clan2Id, reducing Firestore reads by ~50%.
 export async function handleRunDistance(
   uid: string,
   clanIds: string[],
@@ -218,27 +211,37 @@ export async function handleRunDistance(
 ): Promise<void> {
   if (clanIds.length === 0) return;
 
-  const warPromises = clanIds.map((clanId) => getClanActiveWars(clanId));
-  const results = await Promise.all(warPromises);
+  // read all the user's clan docs in parallel (1 read per clan)
+  const clanSnaps = await Promise.all(
+    clanIds.map((id) => getDoc(doc(db, "clans", id)))
+  );
 
-  const seen = new Set<string>();
+  // collect unique active war IDs from clan docs
+  const warIds: string[] = clanSnaps
+    .filter((snap) => snap.exists())
+    .map((snap) => snap.data()?.currentWarId)
+    .filter((wid): wid is string => wid !== null)
+    .filter((wid, i, arr) => arr.indexOf(wid) === i); // dedup
+
+  // read each active war doc (only active wars, not all)
+  const warSnaps = await Promise.all(
+    warIds.map((id) => getDoc(doc(db, "clanWars", id)))
+  );
+
   const incrementPromises: Promise<void>[] = [];
+  for (const warSnap of warSnaps) {
+    if (!warSnap.exists()) continue;
+    const warData = warSnap.data();
+    if (warData.status !== "active") continue;
 
-  for (const wars of results) {
-    for (const war of wars) {
-      if (war.status !== "active") continue;
-      if (seen.has(war.id)) continue;
-      seen.add(war.id);
+    const userClanId = clanIds.find(
+      (cid) => cid === warData.clan1Id || cid === warData.clan2Id
+    );
+    if (!userClanId) continue;
 
-      const userClanId = clanIds.find(
-        (cid) => cid === war.clan1Id || cid === war.clan2Id
-      );
-      if (!userClanId) continue;
-
-      incrementPromises.push(
-        incrementClanDistance(war.id, userClanId, war.clan1Id, distanceKm)
-      );
-    }
+    incrementPromises.push(
+      incrementClanDistance(warSnap.id, userClanId, warData.clan1Id, distanceKm)
+    );
   }
 
   await Promise.all(incrementPromises);
@@ -252,7 +255,6 @@ export interface WarContributor {
   clanName: string;
 }
 
-// sums up runs per member during the war window and returns top N
 export async function getWarTopContributors(
   warStart: Date,
   warEnd: Date,
@@ -299,7 +301,6 @@ export async function getWarTopContributors(
   return results;
 }
 
-// fetches completed wars for a clan, sorted by most recent
 export async function getPastWars(clanId: string): Promise<ClanWarWithId[]> {
   const [snap1, snap2] = await Promise.all([
     getDocs(query(

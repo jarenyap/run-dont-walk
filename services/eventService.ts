@@ -65,7 +65,14 @@ export async function rsvpEvent(eventId: string, uid:string): Promise<void> {
 
 export async function cancelRsvp(eventId: string, uid: string): Promise<void> {
     try {
-        await updateDoc(doc(db, "events", eventId), { rsvpIds: arrayRemove(uid) });
+        await runTransaction(db, async (trans) => {
+            const ref = doc(db, "events", eventId);
+            const snapshot = await trans.get(ref);
+            if (!snapshot.exists()) throw new Error("Event not found");
+            const event = { id: snapshot.id, ...snapshot.data() } as Event;
+            if (pastEvent(event)) throw new Error("Event has already ended");
+            trans.update(ref, { rsvpIds: arrayRemove(uid) });
+        });
     } catch (e) {
         console.error("Error leaving event: ", e);
         throw e;
@@ -77,24 +84,14 @@ export async function eventCompleted(
     uid: string,
 ) : Promise<void> {
     if (!canManage(event, uid)) throw new Error("Only event creator can mark this event as completed");
-    try {
-        await updateDoc(doc(db, "events", event.id), {
-            completedAt: serverTimestamp()
-        });
-    } catch (e) {
-        console.error("Error marking event as completed: ", e);
-        throw e;
-    }
+    await updateDoc(doc(db, "events", event.id), {
+        completedAt: serverTimestamp()
+    });
 }
 
 export async function deleteEvent(event: Event, uid: string): Promise<void> {
     if (!canManage(event, uid)) throw new Error("Only event creator can delete this event");
-    try {
-        await deleteDoc(doc(db, "events", event.id));
-    } catch (e) {
-        console.error("Error deleting event: ", e);
-        throw e;
-    }
+    await deleteDoc(doc(db, "events", event.id));
 }
 
 export function rsvpedEvents(
@@ -113,33 +110,24 @@ export function rsvpedEvents(
         }, onError);
 }
 
-export function discoverEvents(
-    uid: string,
-    followingIds: string[],
+export function allEvents(
     onUpdate: (events: Event[]) => void,
     onError?: (e: Error) => void
-) : () => void {
-    const feedIds = [uid, ...followingIds];
+): () => void {
     const qry = query(
         collection(db, "events"),
-        where("creatorId", "in", feedIds.slice(0, 10)),
         orderBy("scheduledAt", "asc")
     );
     return onSnapshot(qry, (snapshot) => {
         const events = snapshot.docs
-        .map((doc) => ({ id: doc.id, ...doc.data() } as Event))
-        .filter((event) => event.completedAt === null);
+            .map((doc) => ({ id: doc.id, ...doc.data() } as Event))
+            .filter((event) => event.completedAt === null);
         onUpdate(events);
     }, onError);
 }
 
 export async function eventById(eventId: string): Promise<Event | null> {
-    try {
-        const snapshot = await getDoc(doc(db, "events", eventId));
-        if (!snapshot.exists()) return null;
-        return { id: snapshot.id, ...snapshot.data() } as Event;
-    } catch (e) {
-        console.error("Error fetching event by ID: ", e);
-        throw e;
-    }
+    const snapshot = await getDoc(doc(db, "events", eventId));
+    if (!snapshot.exists()) return null;
+    return { id: snapshot.id, ...snapshot.data() } as Event;
 }

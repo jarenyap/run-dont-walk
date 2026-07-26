@@ -16,7 +16,7 @@ export function subscribeFeed(
    
     const q = query(
         collection(db, "runs"),
-        where("userId", "in", feedIds.slice(0, 30)),
+        where("userId", "in", feedIds.slice(0, 10)),
         orderBy("createdAt", "desc"),
         limit(30)
     );

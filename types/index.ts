@@ -3,6 +3,7 @@ import { Timestamp, FieldValue } from "firebase/firestore";
 export type RunType = "easy" | "tempo" | "long" | "race";
 export type NewRun = Omit<Run, "id" | "createdAt" | "likes" | "commentCount">;
 export type EventDifficulty = "easy" | "moderate" | "hard";
+export type Region = "Central" | "North" | "South" | "East" | "West";
 export type WarStatus = "active" | "completed";
 export type FollowRequestStatus = "pending" | "accepted" | "rejected";
 export type ClanRole = "Leader" | "Co-Leader" | "Moderator" | "Member";
@@ -116,6 +117,10 @@ export interface Event {
   location: string;
   distance: number;
   difficulty: EventDifficulty;
+  region: Region;
+  description: string | null;
+  routeDescription: string | null;
+  organizerClanId: string | null;
   scheduledAt: Timestamp;
   rsvpIds: string[];
   createdAt: Timestamp;

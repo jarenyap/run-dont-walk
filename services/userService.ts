@@ -61,39 +61,29 @@ export const updateUserProfile = async (
 };
 
 export const getUserProfile = async (userId: string): Promise<UserProfile | null> => {
-  try {
-    const snap = await getDoc(doc(db, "users", userId));
-    if (!snap.exists()) return null;
-    const data = snap.data() as Omit<UserProfile, "id">;
-    return { ...data, id: snap.id };
-  } catch (error) {
-    console.error("Error fetching user profile:", error);
-    throw error;
-  }
+  const snap = await getDoc(doc(db, "users", userId));
+  if (!snap.exists()) return null;
+  const data = snap.data() as Omit<UserProfile, "id">;
+  return { ...data, id: snap.id };
 };
 
 export const getUserProfiles = async (userIds: string[]): Promise<UserProfile[]> => {
-  try {
-    if (userIds.length === 0) return [];
+  if (userIds.length === 0) return [];
 
-    const profiles: UserProfile[] = [];
-    const MAX_IN_BATCH = 30;
+  const profiles: UserProfile[] = [];
+  const MAX_IN_BATCH = 30;
 
-    for (let i = 0; i < userIds.length; i += MAX_IN_BATCH) {
-      const chunk = userIds.slice(i, i + MAX_IN_BATCH);
-      const q = query(
-        collection(db, "users"),
-        where("__name__", "in", chunk)
-      );
-      const snap = await getDocs(q);
-      snap.docs.forEach((d) => {
-        profiles.push({ id: d.id, ...d.data() } as UserProfile);
-      });
-    }
-
-    return profiles;
-  } catch (error) {
-    console.error("Error fetching user profiles:", error);
-    throw error;
+  for (let i = 0; i < userIds.length; i += MAX_IN_BATCH) {
+    const chunk = userIds.slice(i, i + MAX_IN_BATCH);
+    const q = query(
+      collection(db, "users"),
+      where("__name__", "in", chunk)
+    );
+    const snap = await getDocs(q);
+    snap.docs.forEach((d) => {
+      profiles.push({ id: d.id, ...d.data() } as UserProfile);
+    });
   }
+
+  return profiles;
 };

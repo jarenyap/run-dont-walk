@@ -8,7 +8,7 @@ const csvWrapper = (val : string) => {
 }
 
 export const buildCSV = (runs : Run[]) : string => {
-    const header = ["Date", "Title", "Type", "Distance (km)", "Duration (hh:mm:ss)", "Pace (min/km)", "Notes\n"];
+    const header = ["Date", "Title", "Type", "Distance (km)", "Duration (hh:mm:ss)", "Pace (min/km)", "Notes"];
     const rows = runs.map((run) => {
         const date = run.createdAt.toDate().toISOString().split("T")[0];
         const pace = computePace(run.duration, run.distance);

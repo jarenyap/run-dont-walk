@@ -126,7 +126,7 @@ export default function ClanSettingsScreen() {
     <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <CaretLeftIcon size={20} color="#1A1A1A" weight="bold" />
+          <CaretLeftIcon size={20} color={colors.textPrimary} weight="bold" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Clan Settings</Text>
         <View style={{ width: 20 }} />
@@ -158,7 +158,7 @@ export default function ClanSettingsScreen() {
             setName(t);
             setDirty(true);
           }}
-          placeholderTextColor="#8E8E93"
+          placeholderTextColor={colors.textTertiary}
         />
       </View>
 
@@ -172,7 +172,7 @@ export default function ClanSettingsScreen() {
             setDirty(true);
           }}
           multiline
-          placeholderTextColor="#8E8E93"
+          placeholderTextColor={colors.textTertiary}
         />
       </View>
 
@@ -184,7 +184,7 @@ export default function ClanSettingsScreen() {
             setIsPrivate(v);
             setDirty(true);
           }}
-          trackColor={{ false: colors.borderDefault, true: "#003153" }}
+          trackColor={{ false: colors.borderDefault, true: colors.accentBlue }}
         />
       </View>
 
@@ -196,7 +196,7 @@ export default function ClanSettingsScreen() {
             value={confirmName}
             onChangeText={setConfirmName}
             placeholder={`Type "${clan.name}" to confirm`}
-            placeholderTextColor="#8E8E93"
+            placeholderTextColor={colors.textTertiary}
           />
           <TouchableOpacity style={styles.disbandBtn} onPress={handleDisband}>
             <Text style={styles.disbandText}>Disband Clan</Text>
@@ -214,57 +214,35 @@ export default function ClanSettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FAF8F5", paddingHorizontal: 16 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingBottom: 16,
-  },
-  headerTitle: { color: "#111110", fontSize: 17, fontWeight: "600" },
-  bannerSection: {
-    alignItems: "center",
-    marginBottom: 24,
-    gap: 8,
-  },
-  bannerHint: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  bannerHintText: {
-    color: "#003153",
-    fontSize: 13,
-    fontWeight: "500",
-  },
+  container: { flex: 1, backgroundColor: colors.bgPrimary, paddingHorizontal: 16 },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingBottom: 16 },
+  headerTitle: { color: colors.textPrimary, fontSize: 17, fontWeight: "600" },
+  bannerSection: { alignItems: "center", marginBottom: 24, gap: 8 },
+  bannerHint: { flexDirection: "row", alignItems: "center", gap: 6 },
+  bannerHintText: { color: colors.accentBlue, fontSize: 13, fontWeight: "500" },
   field: { marginBottom: 20 },
-  label: { color: "#9E9E9E", fontSize: 13, fontWeight: "600", marginBottom: 8 },
+  label: { color: colors.textSecondary, fontSize: 13, fontWeight: "600", marginBottom: 8 },
   input: {
-    backgroundColor: "#F0EDE8",
+    backgroundColor: colors.bgInput,
     borderRadius: 12,
     padding: 14,
-    color: "#111110",
+    color: colors.textPrimary,
     fontSize: 15,
     borderWidth: 1,
-    borderColor: "#E8E5E0",
+    borderColor: colors.borderDefault,
   },
   textArea: { minHeight: 80, textAlignVertical: "top" },
-  switchRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 24,
-  },
+  switchRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
   dangerZone: { marginTop: 12 },
-  dangerLabel: { color: "#E62E50", fontSize: 11, fontWeight: "600", marginBottom: 12 },
+  dangerLabel: { color: colors.accentCoral, fontSize: 11, fontWeight: "600", marginBottom: 12 },
   disbandBtn: { marginTop: 12, paddingVertical: 12 },
-  disbandText: { color: "#E62E50", fontSize: 15, fontWeight: "600" },
+  disbandText: { color: colors.accentCoral, fontSize: 15, fontWeight: "600" },
   saveBar: {
     position: "absolute",
     bottom: 24,
     left: 16,
     right: 16,
-    backgroundColor: "#003153",
+    backgroundColor: colors.accentBlue,
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: "center",

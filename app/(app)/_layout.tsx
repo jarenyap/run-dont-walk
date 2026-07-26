@@ -1,14 +1,15 @@
 import { Redirect, Stack } from "expo-router";
 import { useAuth } from "../../context/Auth";
-import { ActivityIndicator, View } from "react-native";
+import { View } from "react-native";
+import { colors } from "../../theme";
 
 export default function AppLayout() {
     const { user, loading } = useAuth();
 
     if (loading) {
         return (
-            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                <ActivityIndicator size="large" color="#6366f1" />
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.bgPrimary }}>
+                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.accentBlue, opacity: 0.6 }} />
             </View>
         );
     }
@@ -50,9 +51,9 @@ export default function AppLayout() {
                     title: "Run Details",
                     headerShown: true,
                     headerBackButtonDisplayMode: "minimal",
-                    headerStyle: { backgroundColor: "#fff" },
-                    headerTitleStyle: { fontWeight: "700", color: "#1A1A1A" },
-                    headerTintColor: "#1A1A1A",
+                    headerStyle: { backgroundColor: colors.bgSurface },
+                    headerTitleStyle: { fontWeight: "700", color: colors.textPrimary },
+                    headerTintColor: colors.textPrimary,
                 }}
             />
         </Stack>

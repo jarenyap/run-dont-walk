@@ -7,7 +7,6 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
@@ -209,7 +208,7 @@ export default function LogRun() {
           disabled={!isValid || loading}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <Text style={styles.buttonText}>Saving…</Text>
           ) : (
             <Text style={styles.buttonText}>Log Run</Text>
           )}

@@ -5,7 +5,6 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
   Alert,
   Modal,
   TextInput,
@@ -456,7 +455,7 @@ export default function ProfileScreen() {
                   </Text>
                 </View>
                 {exporting ? (
-                  <ActivityIndicator color={colors.accentBlue} />
+                  <Text style={styles.exportButton}>Exporting…</Text>
                 ) : (
                   <Text style={styles.exportButton}>Export</Text>
                 )}
@@ -586,7 +585,7 @@ export default function ProfileScreen() {
                   disabled={isSaving}
                 >
                   {isSaving ? (
-                    <ActivityIndicator color="#fff" />
+                    <Text style={styles.saveButtonText}>Saving…</Text>
                   ) : (
                     <Text style={styles.saveButtonText}>Save</Text>
                   )}

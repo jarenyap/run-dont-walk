@@ -3,11 +3,12 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { MapPinIcon, DotsThreeVerticalIcon } from "phosphor-react-native";
 import UserAvatar from "./UserAvatar";
 import { Event } from "../types/index";
+import { colors, spacing, radius, typography } from "../theme";
 
-const DIFFICULTY_COLORS: Record<Event["difficulty"],  { bg: string; text: string }> = {
-  easy: { bg: "#E8F7EC", text: "#1E8A3C" },
-  moderate: { bg: "#FFF1E0", text: "#B8630A" },
-  hard: { bg: "#FEE2E2", text: "#991B1B" },
+const DIFFICULTY: Record<Event["difficulty"], { bg: string; text: string }> = {
+    easy: { bg: "#88BB0022", text: colors.accentVolt },
+    moderate: { bg: "#D4952B22", text: colors.accentAmber },
+    hard: { bg: "#E62E5022", text: colors.accentCoral },
 };
 
 interface EventCardProps {
@@ -22,66 +23,127 @@ interface EventCardProps {
 }
 
 export default function EventCard({
-    event, rsvped, full, past, canManage, isCreator, onToggleRSVP, onManage
+    event,
+    rsvped,
+    full,
+    past,
+    canManage,
+    isCreator,
+    onToggleRSVP,
+    onManage,
 }: EventCardProps) {
-    const difficulty = DIFFICULTY_COLORS[event.difficulty];
+    const difficulty = DIFFICULTY[event.difficulty];
     const scheduled = event.scheduledAt.toDate();
 
+    const pillDisabled = past || (full && !rsvped) || isCreator;
+
     return (
-        <View style={styles.card}>
-            <View style={styles.hostRow}>
-                <UserAvatar uri={event.creatorAvatarUrl} size={20} name={event.creatorName} />
-                <Text style={styles.hostText}>
-                    Hosted by <Text style={styles.hostName}>{isCreator ? "You" : event.creatorName}</Text>
+        <View style={s.card}>
+            {/* host row */}
+            <View style={s.hostRow}>
+                <UserAvatar
+                    uri={event.creatorAvatarUrl}
+                    size={20}
+                    name={event.creatorName}
+                />
+                <Text style={s.hostText}>
+                    Hosted by{" "}
+                    <Text style={s.hostName}>
+                        {isCreator ? "You" : event.creatorName}
+                    </Text>
                 </Text>
                 {canManage && onManage && (
-                    <TouchableOpacity style={styles.manageButton} onPress={onManage}>
-                        <DotsThreeVerticalIcon size={16} color="#8E8E93" weight="bold" />
+                    <TouchableOpacity
+                        style={s.manageButton}
+                        onPress={onManage}
+                    >
+                        <DotsThreeVerticalIcon
+                            size={16}
+                            color={colors.textTertiary}
+                            weight="bold"
+                        />
                     </TouchableOpacity>
                 )}
             </View>
 
-            <View style={styles.body}>
-                <View style={styles.dataBadge}>
-                    <Text style={styles.month}>{scheduled.toLocaleString("en-GB", { month: "short" })}</Text>
-                    <Text style={styles.day}>{scheduled.getDate()}</Text>
+            {/* body */}
+            <View style={s.body}>
+                {/* date badge */}
+                <View style={s.dateBadge}>
+                    <Text style={s.month}>
+                        {scheduled.toLocaleString("en-GB", { month: "short" })}
+                    </Text>
+                    <Text style={s.day}>{scheduled.getDate()}</Text>
                 </View>
 
-                <View style={styles.info}>
-                    <View style={styles.titleRow}>
-                        <Text style={styles.title} numberOfLines={1}>
+                <View style={s.info}>
+                    {/* title + difficulty */}
+                    <View style={s.titleRow}>
+                        <Text style={s.title} numberOfLines={1}>
                             {event.title}
                         </Text>
-                        <View style={[styles.difficultyBadge, { backgroundColor: difficulty.bg }]}>
-                            <Text style={[styles.difficultyText, { color: difficulty.text }]}>
-                                {event.difficulty[0].toUpperCase() + event.difficulty.slice(1)}
+                        <View
+                            style={[
+                                s.difficultyBadge,
+                                { backgroundColor: difficulty.bg },
+                            ]}
+                        >
+                            <Text
+                                style={[
+                                    s.difficultyText,
+                                    { color: difficulty.text },
+                                ]}
+                            >
+                                {event.difficulty[0].toUpperCase() +
+                                    event.difficulty.slice(1)}
                             </Text>
                         </View>
                     </View>
 
-                    <View style={styles.dataRow}>
-                        <MapPinIcon size={12} color="#8E8E93" />
-                        <Text style={styles.dataText}>
-                            {event.location} | {scheduled.toLocaleString("en-GB", { hour: "numeric", minute: "2-digit" })} | {event.distance}km
+                    {/* location / time / distance */}
+                    <View style={s.dataRow}>
+                        <MapPinIcon size={12} color={colors.textTertiary} />
+                        <Text style={s.dataText}>
+                            {event.location} |{" "}
+                            {scheduled.toLocaleString("en-GB", {
+                                hour: "numeric",
+                                minute: "2-digit",
+                            })}{" "}
+                            | {event.distance}km
                         </Text>
                     </View>
 
-                    <View style={styles.footerRow}>
-                        <Text style={styles.rsvpedCount}>
-                            {event.rsvpIds.length}{event.maxParticipants > 0 ? `/${event.maxParticipants}` : ""} going
+                    {/* footer: RSVP count + pill */}
+                    <View style={s.footerRow}>
+                        <Text style={s.rsvpCount}>
+                            {event.rsvpIds.length}
+                            {event.maxParticipants > 0
+                                ? `/${event.maxParticipants}`
+                                : ""}{" "}
+                            going
                         </Text>
-                        <TouchableOpacity style={[
-                            styles.rsvpTablet,
-                            rsvped && styles.rsvpedTabletGoing,
-                            (past || (full && !rsvped) || isCreator) && styles.rsvpedTabletDisabled,
-                        ]}
-                        onPress={onToggleRSVP}
-                        disabled={past || (full && !rsvped) || isCreator}
+                        <TouchableOpacity
+                            style={[
+                                s.pill,
+                                rsvped && s.pillActive,
+                                pillDisabled && s.pillDisabled,
+                            ]}
+                            onPress={onToggleRSVP}
+                            disabled={pillDisabled}
                         >
-                            <Text style={[styles.rsvpText, rsvped && styles.rsvpTextGoing]}>
-                                {isCreator ? "Hosting"
+                            <Text
+                                style={[
+                                    s.pillText,
+                                    rsvped && s.pillTextActive,
+                                    pillDisabled && s.pillTextDisabled,
+                                ]}
+                            >
+                                {isCreator
+                                    ? "Hosting"
                                     : past
-                                    ? (event.completedAt ? "Completed" : "Ended")
+                                    ? event.completedAt
+                                        ? "Completed"
+                                        : "Ended"
                                     : rsvped
                                     ? "Going"
                                     : full
@@ -96,15 +158,17 @@ export default function EventCard({
     );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
     card: {
-        backgroundColor: "#F5F5F0",
+        backgroundColor: colors.bgSurface,
         borderWidth: 1,
-        borderColor: "#E0E0DC",
-        borderRadius: 12,
-        padding: 12,
-        marginBottom: 10
+        borderColor: colors.borderDefault,
+        borderRadius: radius.md,
+        padding: spacing.md,
+        marginBottom: spacing.sm,
     },
+
+    /* host */
     hostRow: {
         flexDirection: "row",
         alignItems: "center",
@@ -112,105 +176,122 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     hostText: {
-        fontSize: 11,
-        color: "#8E8E93",
+        fontSize: typography.caption.fontSize,
+        color: colors.textSecondary,
         flex: 1,
     },
     hostName: {
-        color: "#1A1A1A",
+        color: colors.textPrimary,
         fontWeight: "600",
     },
     manageButton: {
         padding: 4,
     },
+
+    /* body */
     body: {
         flexDirection: "row",
-        gap: 10
+        gap: 10,
     },
-    dataBadge: {
-        width: 42,
-        height: 42,
-        borderRadius: 10,
-        backgroundColor: "#FFFFFF",
+
+    /* date badge */
+    dateBadge: {
+        width: 48,
+        height: 48,
+        borderRadius: radius.sm,
+        backgroundColor: colors.bgSurface,
         borderWidth: 1,
-        borderColor: "#E0E0DC",
+        borderColor: colors.borderDefault,
         alignItems: "center",
-        justifyContent: "center"
+        justifyContent: "center",
     },
     month: {
-        fontSize: 9,
-        color: "#FF6B35",
-        fontWeight: "600",
-        textTransform: "uppercase"
+        fontSize: typography.badge.fontSize,
+        color: colors.accentBlue,
+        fontWeight: "700",
+        textTransform: "uppercase",
     },
     day: {
         fontSize: 15,
-        color: "#1A1A1A",
-        fontWeight: "600"
+        color: colors.textPrimary,
+        fontWeight: "600",
     },
+
+    /* info */
     info: {
         flex: 1,
-        minWidth: 0
+        minWidth: 0,
     },
     titleRow: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "flex-start",
-        gap: 6
+        gap: 6,
     },
     title: {
-        fontSize: 13,
+        fontSize: typography.body.fontSize,
         fontWeight: "600",
-        color: "#1A1A1A",
-        flexShrink: 1
+        color: colors.textPrimary,
+        flexShrink: 1,
     },
     difficultyBadge: {
         paddingHorizontal: 7,
         paddingVertical: 2,
-        borderRadius: 99,
+        borderRadius: radius.full,
     },
     difficultyText: {
-        fontSize: 10,
-        fontWeight: "600"
+        fontSize: typography.badge.fontSize,
+        fontWeight: "600",
     },
+
+    /* data */
     dataRow: {
         flexDirection: "row",
         alignItems: "center",
         gap: 4,
-        marginTop: 4
+        marginTop: 4,
     },
     dataText: {
-        fontSize: 11,
-        color: "#8E8E93"
+        fontSize: typography.caption.fontSize,
+        color: colors.textSecondary,
     },
+
+    /* footer */
     footerRow: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginTop: 10
+        marginTop: 10,
     },
-    rsvpedCount: {
-        fontSize: 11,
-        color: "#8E8E93"
+    rsvpCount: {
+        fontSize: typography.caption.fontSize,
+        color: colors.textSecondary,
     },
-    rsvpTablet: {
-        borderWidth: 1,
-        borderColor: "#FF6B35",
-        borderRadius: 99,
-        paddingHorizontal: 12,
-        paddingVertical: 12
+
+    /* RSVP pill */
+    pill: {
+        borderWidth: 1.5,
+        borderColor: colors.accentBlue,
+        borderRadius: radius.full,
+        paddingHorizontal: 14,
+        paddingVertical: 6,
     },
-    rsvpedTabletGoing: {
-        backgroundColor: "#FF6B35"
+    pillActive: {
+        backgroundColor: colors.accentBlue,
     },
-    rsvpedTabletDisabled: {
-        borderColor: "#D1D1D6",
-        backgroundColor: "#FF6B35",
+    pillDisabled: {
+        borderColor: colors.borderSubtle,
+        backgroundColor: "transparent",
     },
-    rsvpText: {
-        color: "#FFFFFF"
+    pillText: {
+        fontSize: typography.caption.fontSize,
+        fontWeight: "600",
+        color: colors.accentBlue,
     },
-    rsvpTextGoing: {
-        color: "#FFFFFF"
-    }
+    pillTextActive: {
+        color: "#FFFFFF",
+    },
+    pillTextDisabled: {
+        color: colors.textTertiary,
+    },
 });

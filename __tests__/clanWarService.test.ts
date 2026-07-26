@@ -295,22 +295,25 @@ describe("checkAndCompleteWar", () => {
 });
 
 describe("handleRunDistance", () => {
-  beforeEach(() => { jest.clearAllMocks(); mockGetDoc.mockReset(); });
+  beforeEach(() => { jest.clearAllMocks(); mockGetDoc.mockReset(); mockGetDocs.mockReset(); });
 
   it("returns early when clanIds array is empty", async () => {
     await handleRunDistance("user-1", [], 5.0);
-    expect(mockGetDocs).not.toHaveBeenCalled();
+    expect(mockGetDoc).not.toHaveBeenCalled();
   });
 
   it("calls incrementClanDistance for each active war the user is in", async () => {
-    mockGetDocs
+    // clan doc read — returns clan with an active war
+    mockGetDoc
       .mockResolvedValueOnce({
-        forEach: (cb: any) => cb({ id: "war-1", data: () => ({ clan1Id: "clan-A", clan2Id: "clan-B", status: "active" }) }),
-        docs: [{ id: "war-1", data: () => ({ clan1Id: "clan-A", clan2Id: "clan-B", status: "active" }) }],
+        exists: () => true,
+        data: () => ({ currentWarId: "war-1" }),
       })
-      .mockResolvedValueOnce({ forEach: () => {}, docs: [] })
-      .mockResolvedValueOnce({ forEach: () => {}, docs: [] })
-      .mockResolvedValueOnce({ forEach: () => {}, docs: [] });
+      // war doc read — returns active war
+      .mockResolvedValueOnce({
+        exists: () => true,
+        data: () => ({ clan1Id: "clan-A", clan2Id: "clan-B", status: "active" }),
+      });
 
     mockRunTransaction.mockImplementation(async (_db: any, fn: any) => {
       const tx = {

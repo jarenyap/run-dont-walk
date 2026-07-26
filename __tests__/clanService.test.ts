@@ -197,7 +197,11 @@ describe("subscribeToClan", () => {
 });
 
 describe("joinPublicClan", () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // isUserInWarWithClan reads the user doc — return empty clanIds = no wars
+    mockGetDoc.mockResolvedValue({ exists: () => true, data: () => ({ clanIds: [] }) });
+  });
 
   it("adds the user to memberIds and calls commit", async () => {
     await joinPublicClan("clan-1", "user-B");
@@ -249,7 +253,10 @@ describe("getJoinRequests", () => {
 });
 
 describe("acceptJoinRequest", () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetDoc.mockResolvedValue({ exists: () => true, data: () => ({ clanIds: [] }) });
+  });
 
   it("adds user to memberIds, updates clanIds, and marks request accepted", async () => {
     await acceptJoinRequest("req-1", "clan-1", "user-B");
@@ -363,10 +370,18 @@ describe("transferLeadership", () => {
 
   it("sets the new leader and demotes the old leader to co-leader", async () => {
     await transferLeadership("clan-1", "leader-uid", "user-B");
+    // first update: remove new leader from coLeaderIds + set leaderId
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
         leaderId: "user-B",
+        coLeaderIds: { __type: "arrayRemove", v: "user-B" },
+      })
+    );
+    // second update: promote old leader to co-leader
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
         coLeaderIds: { __type: "arrayUnion", v: "leader-uid" },
       })
     );
@@ -404,11 +419,37 @@ describe("updateClanDetails", () => {
 });
 
 describe("disbandClan", () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // clan doc read
+    mockGetDoc.mockResolvedValue({
+      exists: () => true,
+      data: () => ({ memberIds: ["leader-uid", "member-2"] }),
+    });
+    // join requests query - mock with forEach
+    mockGetDocs.mockResolvedValue({ docs: [], forEach: () => {} });
+  });
 
-  it("deletes the clan document", async () => {
+  it("deletes the clan via batch and cleans up member clanIds", async () => {
     await disbandClan("clan-1");
-    expect(mockDeleteDoc).toHaveBeenCalledTimes(1);
+    // batch.delete called on clan doc
+    expect(mockBatch.delete).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "clan-1" })
+    );
+    expect(mockCommit).toHaveBeenCalledTimes(1);
+  });
+
+  it("removes clanId from every member's user doc", async () => {
+    await disbandClan("clan-1");
+    // two members → two user doc updates
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "leader-uid" }),
+      expect.objectContaining({ clanIds: expect.any(Object) })
+    );
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "member-2" }),
+      expect.objectContaining({ clanIds: expect.any(Object) })
+    );
   });
 });
 
@@ -476,7 +517,11 @@ describe("getClanPermissions", () => {
 });
 
 describe("error handling", () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // isUserInWarWithClan reads the user doc for join/accept paths
+    mockGetDoc.mockResolvedValue({ exists: () => true, data: () => ({ clanIds: [] }) });
+  });
 
   it("createClan rethrows when batch.commit fails", async () => {
     mockCommit.mockRejectedValueOnce(new Error("Firestore write failed"));
@@ -573,8 +618,15 @@ describe("error handling", () => {
     );
   });
 
-  it("disbandClan rethrows when deleteDoc fails", async () => {
-    mockDeleteDoc.mockRejectedValueOnce(new Error("Delete failed"));
+  it("disbandClan rethrows when batch.commit fails", async () => {
+    // first call: clan doc read
+    mockGetDoc.mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({ memberIds: ["leader-uid"] }),
+    });
+    // join requests query
+    mockGetDocs.mockResolvedValueOnce({ docs: [], forEach: () => {} });
+    mockCommit.mockRejectedValueOnce(new Error("Delete failed"));
     await expect(disbandClan("clan-1")).rejects.toThrow("Delete failed");
   });
 });
