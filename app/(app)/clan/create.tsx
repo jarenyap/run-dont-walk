@@ -1,13 +1,5 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-} from "react-native";
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { GlobeIcon, LockSimpleIcon, CameraIcon } from "phosphor-react-native";
@@ -16,6 +8,7 @@ import { useAuth } from "../../../context/Auth";
 import { createClan, uploadClanBanner } from "../../../services/clanService";
 import UserAvatar from "../../../components/UserAvatar";
 import { colors, spacing, radius } from "../../../theme";
+
 
 export default function CreateClanScreen() {
   const insets = useSafeAreaInsets();
@@ -37,14 +30,12 @@ export default function CreateClanScreen() {
       );
       return;
     }
-
     const res = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.5,
     });
-
     if (!res.canceled) {
       setBannerUri(res.assets[0].uri);
     }
@@ -129,7 +120,7 @@ export default function CreateClanScreen() {
           value={name}
           onChangeText={(t) => setName(t.slice(0, 40))}
           placeholder="e.g. Kent Ridge Runners"
-          placeholderTextColor={colors.textTertiary}
+          placeholderTextColor="#8E8E93"
           maxLength={40}
         />
       </View>
@@ -141,7 +132,7 @@ export default function CreateClanScreen() {
           value={description}
           onChangeText={setDescription}
           placeholder="What's your clan about?"
-          placeholderTextColor={colors.textTertiary}
+          placeholderTextColor="#8E8E93"
           multiline
         />
       </View>
@@ -178,39 +169,38 @@ export default function CreateClanScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bgPrimary,
-    paddingHorizontal: spacing.md,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 16
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingBottom: spacing.md,
+    paddingBottom: 16,
   },
-  cancelBtn: {
-    color: colors.textSecondary,
-    fontSize: 15,
+  cancelBtn: {color: "#8E8E93",
+    fontSize: 15
   },
   headerTitle: {
-    color: colors.textPrimary,
+    color: "#1A1A1A",
     fontSize: 17,
-    fontWeight: "600",
+    fontWeight: "600"
   },
   createBtn: {
-    backgroundColor: colors.accentBlue,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.sm,
+    backgroundColor: "#FF6B35",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
     minWidth: 64,
     alignItems: "center",
   },
   createBtnDisabled: {
-    backgroundColor: colors.bgInput,
+    backgroundColor: "#D1D1D6"
   },
   createBtnText: {
     color: "#FFFFFF",
     fontWeight: "600",
-    fontSize: 14,
+    fontSize: 14
   },
   bannerArea: {
     alignItems: "center",
@@ -228,56 +218,59 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   field: {
-    marginBottom: spacing.lg,
+    marginBottom: 20
   },
   labelRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "space-between"
   },
   label: {
-    color: colors.textSecondary,
+    color: "#8E8E93",
     fontSize: 13,
     fontWeight: "600",
-    marginBottom: spacing.sm,
+    marginBottom: 8
   },
   counter: {
-    color: colors.textSecondary,
-    fontSize: 12,
+    color: "#8E8E93",
+    fontSize: 12
   },
   input: {
-    backgroundColor: colors.bgInput,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    color: colors.textPrimary,
+    backgroundColor: "#F5F5F0",
+    borderRadius: 12,
+    padding: 14,
+    color: "#1A1A1A",
     fontSize: 15,
     borderWidth: 1,
-    borderColor: colors.borderDefault,
+    borderColor: "#E0E0DC",
   },
   textArea: {
     minHeight: 80,
-    textAlignVertical: "top",
+    textAlignVertical: "top"
   },
   visibilityRow: {
     flexDirection: "row",
-    gap: spacing.md,
+    gap: 12
   },
   visCard: {
     flex: 1,
-    backgroundColor: colors.bgInput,
-    borderRadius: radius.md,
-    padding: spacing.md,
+    backgroundColor: "#F5F5F0",
+    borderRadius: 12,
+    padding: 16,
     alignItems: "center",
     borderWidth: 2,
-    borderColor: colors.borderDefault,
-    gap: spacing.sm,
+    borderColor: "#E0E0DC",
   },
   visCardSelected: {
-    borderColor: colors.accentBlue,
-    backgroundColor: colors.bgSurface,
+    borderColor: "#FF6B35",
+    backgroundColor: "#FF6B3522"
+  },
+  visIcon: {
+    fontSize: 24,
+    marginBottom: 6
   },
   visLabel: {
-    color: colors.textPrimary,
+    color: "#1A1A1A",
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: "600"
   },
 });
