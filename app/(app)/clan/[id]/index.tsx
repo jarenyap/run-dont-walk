@@ -27,6 +27,8 @@ import {
   leaveClan,
   hasPendingJoinRequest,
 } from "../../../../services/clanService";
+import { subscribeToClanWar, getPastWars } from "../../../../services/clanWarService";
+import type { ClanWarWithId } from "../../../../services/clanWarService";
 import type { Clan } from "../../../../types/index";
 
 export default function ClanHomeScreen() {
@@ -35,6 +37,8 @@ export default function ClanHomeScreen() {
   const router = useRouter();
   const { user, profile } = useAuth();
   const [clan, setClan] = useState<Clan | null>(null);
+  const [war, setWar] = useState<ClanWarWithId | null>(null);
+  const [pastWars, setPastWars] = useState<ClanWarWithId[]>([]);
   const [announcementModalVisible, setAnnouncementModalVisible] = useState(false);
   const [announcementText, setAnnouncementText] = useState("");
   const [posting, setPosting] = useState(false);
@@ -47,13 +51,24 @@ export default function ClanHomeScreen() {
     return unsub;
   }, [id]);
 
-  // Check for existing pending join requests when clan loads
+  useEffect(() => {
+    if (!clan?.currentWarId) {
+      setWar(null);
+      return;
+    }
+    const unsub = subscribeToClanWar(clan.currentWarId, setWar);
+    return unsub;
+  }, [clan?.currentWarId]);
+
+  useEffect(() => {
+    if (!id) return;
+    getPastWars(id).then(setPastWars);
+  }, [id]);
   useEffect(() => {
     if (!id || !user) return;
     hasPendingJoinRequest(id, user.uid).then(setHasRequested);
   }, [id, user]);
 
-  // Track hasRequested when clan data or role changes (must be before early return)
   useEffect(() => {
     if (!clan || !user) return;
     const currentRole = deriveClanRole(clan, user.uid);
@@ -74,6 +89,7 @@ export default function ClanHomeScreen() {
 
   const role = user ? deriveClanRole(clan, user.uid) : null;
   const permissions = getClanPermissions(role);
+  const canManageWar = permissions.canStartWar;
 
   const handleOpenAnnouncementModal = () => {
     setAnnouncementText(clan.announcement?.text ?? "");
@@ -165,7 +181,9 @@ export default function ClanHomeScreen() {
         </View>
         <View style={styles.statDivider} />
         <View style={styles.statCol}>
-          <Text style={styles.statNum}>{clan.currentWarId ? "Active" : "None"}</Text>
+          <Text style={styles.statNum}>
+            {war?.status === "active" ? "Active" : war?.status === "pending" ? "Pending" : "None"}
+          </Text>
           <Text style={styles.statLabel}>Clan War</Text>
         </View>
         <View style={styles.statDivider} />
@@ -174,6 +192,21 @@ export default function ClanHomeScreen() {
           <Text style={styles.statLabel}>Visibility</Text>
         </View>
       </View>
+
+      {war && (war.status === "active" || war.status === "pending") && role !== null && (
+        <TouchableOpacity
+          style={styles.warBanner}
+          onPress={() => router.push(`/clan/${clan.id}/war`)}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.warBannerText}>
+            {war.status === "active"
+              ? "⚔️ Clan War active! View scoreboard"
+              : "📨 Pending war challenge — View details"}
+          </Text>
+          <Text style={styles.warBannerArrow}>›</Text>
+        </TouchableOpacity>
+      )}
 
       {role === null && (
         <View style={styles.joinSection}>
@@ -239,6 +272,58 @@ export default function ClanHomeScreen() {
         >
           <Text style={styles.leaveBtnText}>Leave Clan</Text>
         </TouchableOpacity>
+      )}
+
+      {role !== null && (
+        <View style={styles.pastWarsSection}>
+          <Text style={styles.sectionTitle}>War History</Text>
+          {canManageWar && (
+            <TouchableOpacity
+              style={[styles.startWarBtn, clan?.currentWarId && styles.startWarBtnDisabled]}
+              onPress={() => router.push(`/clan/${clan?.id}/war`)}
+              disabled={!!clan?.currentWarId}
+            >
+              <Text style={styles.startWarBtnText}>
+                {clan?.currentWarId ? "War in progress" : "Start a Clan War"}
+              </Text>
+            </TouchableOpacity>
+          )}
+          {pastWars.length === 0 ? (
+            <Text style={styles.emptyAnnouncement}>No past wars</Text>
+          ) : (
+            pastWars.map((pw) => {
+              const won = pw.winnerId === clan?.id;
+              const isTie = pw.winnerId === null;
+              const myName = clan?.name ?? "";
+              const opponentName = pw.clan1Id === id ? pw.clan2Name : pw.clan1Name;
+              const myScore = pw.clan1Id === id ? pw.clan1Distance : pw.clan2Distance;
+              const oppScore = pw.clan1Id === id ? pw.clan2Distance : pw.clan1Distance;
+              return (
+                <TouchableOpacity
+                  key={pw.id}
+                  style={[
+                    styles.pastWarRow,
+                    { backgroundColor: won ? "#34C75915" : isTie ? "#F5F5F0" : "#FF3B3015" },
+                  ]}
+                  onPress={() => router.push(`/clan/${id}/war?warId=${pw.id}`)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.pastWarInfo}>
+                    <Text style={styles.pastWarResult}>
+                      {myName} vs {opponentName}
+                    </Text>
+                    <Text style={styles.pastWarScore}>
+                      {myScore} km — {oppScore} km
+                    </Text>
+                  </View>
+                  <View style={[styles.pastWarBadge, { backgroundColor: won ? "#34C759" : isTie ? "#8E8E93" : "#FF3B30" }]}>
+                    <Text style={styles.pastWarBadgeText}>{won ? "W" : isTie ? "T" : "L"}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })
+          )}
+        </View>
       )}
 
       <Modal
@@ -431,4 +516,56 @@ const styles = StyleSheet.create({
     borderColor: "#FF3B30",
   },
   leaveBtnText: { color: "#FF3B30", fontWeight: "600", fontSize: 15 },
+  warBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginHorizontal: 16,
+    marginTop: 16,
+    backgroundColor: "#FF6B35",
+    borderRadius: 12,
+    padding: 14,
+  },
+  warBannerText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  warBannerArrow: {
+    color: "#FFFFFF",
+    fontSize: 20,
+    fontWeight: "700",
+  },
+  pastWarsSection: { marginHorizontal: 16, marginTop: 24, marginBottom: 16 },
+  pastWarRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+    backgroundColor: "#F5F5F0",
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  pastWarBar: { width: 4, height: "100%", minHeight: 48 },
+  pastWarInfo: { padding: 12, flex: 1 },
+  pastWarResult: { color: "#1A1A1A", fontSize: 14, fontWeight: "600" },
+  pastWarScore: { color: "#8E8E93", fontSize: 13, marginTop: 2 },
+  pastWarBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  pastWarBadgeText: { color: "#FFFFFF", fontSize: 14, fontWeight: "800" },
+  startWarBtn: {
+    backgroundColor: "#FF6B35",
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: "center",
+    marginTop: 12,
+    marginBottom: 16,
+  },
+  startWarBtnDisabled: { backgroundColor: "#D1D1D6" },
+  startWarBtnText: { color: "#FFFFFF", fontWeight: "600", fontSize: 15 },
 });

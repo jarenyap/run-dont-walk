@@ -93,13 +93,16 @@ export interface ClanPermissions {
 export interface ClanWar {
   id: string;
   clan1Id: string;
+  clan1Name: string;
   clan2Id: string;
+  clan2Name: string;
   clan1Distance: number;
   clan2Distance: number;
-  startDate: Timestamp;
-  endDate: Timestamp;
+  startedAt: Timestamp;
+  endsAt: Timestamp;
   status: WarStatus;
   winnerId: string | null;
+  initiatedBy: string;
 }
 
 export interface Event {

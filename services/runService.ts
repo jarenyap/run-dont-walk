@@ -1,4 +1,4 @@
-import { collection, doc, query, where, orderBy, getDocs, onSnapshot,
+import { collection, doc, query, where, orderBy, getDoc, getDocs, onSnapshot,
     serverTimestamp, increment, writeBatch } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { NewRun, Run } from "../types";
@@ -22,6 +22,19 @@ export const logRun = async (newRun: NewRun): Promise<string> => {
         });
 
         await batch.commit();
+
+        // clan war hook to increment active war distance
+        try {
+            const userSnap = await getDoc(doc(db, "users", newRun.userId));
+            const clanIds: string[] = userSnap.exists() ? (userSnap.data().clanIds ?? []) : [];
+            if (clanIds.length > 0) {
+                const { handleRunDistance } = await import("./clanWarService");
+                handleRunDistance(newRun.userId, clanIds, newRun.distance);
+            }
+        } catch (warError) {
+            console.error("Failed to update clan war distances:", warError);
+        }
+
         return runRef.id;
     } catch (error) {
         console.error("Error logging run:", error);

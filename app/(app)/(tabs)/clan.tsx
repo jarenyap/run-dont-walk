@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter, useFocusEffect } from "expo-router";
 import { PlusIcon, MagnifyingGlassIcon, XIcon } from "phosphor-react-native";
 import { useAuth } from "../../../context/Auth";
-import { getUserClans, discoverPublicClans, searchPublicClansByName, deriveClanRole } from "../../../services/clanService";
+import { getUserClans, discoverPublicClans, searchAllClansByName, deriveClanRole } from "../../../services/clanService";
 import ClanCard from "../../../components/ClanCard";
 import type { Clan, ClanRole } from "../../../types/index";
 
@@ -59,7 +59,7 @@ export default function ClanScreen() {
   const runSearch = async (term: string) => {
     setSearching(true);
     try {
-      const results = await searchPublicClansByName(term);
+      const results = await searchAllClansByName(term);
       const myClanIdsSet = new Set(profile?.clanIds ?? []);
       setSearchResults(results.filter((clan) => !myClanIdsSet.has(clan.id)));
     } finally {

@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, query, where, writeBatch, updateDoc, deleteDoc, arrayUnion, arrayRemove, serverTimestamp, onSnapshot, addDoc, limit } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where, orderBy, startAt, endAt, writeBatch, updateDoc, deleteDoc, arrayUnion, arrayRemove, serverTimestamp, onSnapshot, addDoc, limit } from "firebase/firestore";
 import { db } from "../firebaseConfig"
 import type { Clan, ClanRole, ClanPermissions, ClanJoinRequest, } from "../types/index"
 
@@ -105,14 +105,14 @@ export async function discoverPublicClans(): Promise<Clan[]> {
   }
 }
 
-export async function searchPublicClansByName(term: string): Promise<Clan[]> {
+export async function searchAllClansByName(term: string): Promise<Clan[]> {
   try {
     const normalized = term.trim().toLowerCase();
     const q = query(
       collection(db, "clans"),
-      where("isPrivate", "==", false),
-      where("nameLower", ">=", normalized),
-      where("nameLower", "<=", normalized + "\uf8ff"),
+      orderBy("nameLower"),
+      startAt(normalized),
+      endAt(normalized + "\uf8ff"),
       limit(20)
     );
     const snap = await getDocs(q);
