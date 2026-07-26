@@ -98,8 +98,8 @@ export interface ClanWar {
   clan2Name: string;
   clan1Distance: number;
   clan2Distance: number;
-  startDate: Timestamp;
-  endDate: Timestamp;
+  startedAt: Timestamp;
+  endsAt: Timestamp;
   status: WarStatus;
   winnerId: string | null;
   initiatedBy: string;

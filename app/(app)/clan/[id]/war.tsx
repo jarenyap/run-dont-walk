@@ -21,7 +21,7 @@ import {
   subscribeToClan,
   deriveClanRole,
   getClanPermissions,
-  searchPublicClansByName,
+  searchAllClansByName,
   getClanById,
 } from "../../../../services/clanService";
 import {
@@ -121,7 +121,7 @@ export default function ClanWarScreen() {
     const timer = setTimeout(async () => {
       setSearching(true);
       try {
-        const results = await searchPublicClansByName(searchTerm.trim().toLowerCase());
+        const results = await searchAllClansByName(searchTerm.trim().toLowerCase());
         const filtered = results.filter(
           (c) => c.id !== id && !(profile?.clanIds ?? []).includes(c.id)
         );

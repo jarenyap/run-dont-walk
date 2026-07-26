@@ -105,7 +105,7 @@ export async function discoverPublicClans(): Promise<Clan[]> {
   }
 }
 
-export async function searchPublicClansByName(term: string): Promise<Clan[]> {
+export async function searchAllClansByName(term: string): Promise<Clan[]> {
   try {
     const normalized = term.trim().toLowerCase();
     const q = query(

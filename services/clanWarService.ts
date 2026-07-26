@@ -100,6 +100,7 @@ export async function acceptChallenge(warId: string): Promise<void> {
 
   await updateDoc(doc(db, "clanWars", warId), {
     status: "active",
+    startedAt: serverTimestamp(),
     endsAt: new Date(now + twoWeeksMs),
   });
 }
@@ -263,7 +264,7 @@ export async function getWarTopContributors(
   const profiles = await getUserProfiles(memberIds);
   const profileMap = new Map(profiles.map((p) => [p.id, p]));
 
-  const contributorPromises = memberIds.slice(0, topN * 3).map(async (uid) => {
+  const contributorPromises = memberIds.map(async (uid) => {
     const q = query(
       collection(db, "runs"),
       where("userId", "==", uid),

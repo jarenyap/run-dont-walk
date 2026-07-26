@@ -29,7 +29,7 @@ export const logRun = async (newRun: NewRun): Promise<string> => {
             const clanIds: string[] = userSnap.exists() ? (userSnap.data().clanIds ?? []) : [];
             if (clanIds.length > 0) {
                 const { handleRunDistance } = await import("./clanWarService");
-                await handleRunDistance(newRun.userId, clanIds, newRun.distance);
+                handleRunDistance(newRun.userId, clanIds, newRun.distance);
             }
         } catch (warError) {
             console.error("Failed to update clan war distances:", warError);
