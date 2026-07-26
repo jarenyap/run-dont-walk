@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { colors, spacing, radius, typography } from "../theme";
 
 interface WarScoreboardCardProps {
   clan1Name: string;
@@ -16,19 +17,28 @@ export default function WarScoreboardCard({
   clan2Distance,
   isClan1,
 }: WarScoreboardCardProps) {
-  const total = clan1Distance + clan2Distance || 1; 
+  const total = clan1Distance + clan2Distance || 1;
   const clan1Percent = (clan1Distance / total) * 100;
   const clan2Percent = (clan2Distance / total) * 100;
 
+  const myColor = colors.accentBlue;
+  const opponentColor = colors.accentCoral;
+
   return (
     <View style={styles.card}>
-      <View style={styles.identityRow}>
+      <View style={styles.scoreRow}>
         <View style={styles.clanBlock}>
-          <Text style={[styles.clanName, isClan1 ? { color: "#FF6B35" } : { color: "#0A84FF" }]}>
-            {clan1Name}
+          <Text
+            style={[
+              styles.score,
+              { color: isClan1 ? myColor : opponentColor },
+            ]}
+          >
+            {clan1Distance.toFixed(1)}
           </Text>
-          <Text style={isClan1 ? styles.distance : styles.opponentDistance}>
-            {clan1Distance.toFixed(1)} km
+          <Text style={styles.label}>km</Text>
+          <Text style={styles.clanName} numberOfLines={1}>
+            {clan1Name}
           </Text>
         </View>
 
@@ -37,11 +47,17 @@ export default function WarScoreboardCard({
         </View>
 
         <View style={styles.clanBlock}>
-          <Text style={[styles.clanName, isClan1 ? { color: "#0A84FF" } : { color: "#FF6B35" }]}>
-            {clan2Name}
+          <Text
+            style={[
+              styles.score,
+              { color: isClan1 ? opponentColor : myColor },
+            ]}
+          >
+            {clan2Distance.toFixed(1)}
           </Text>
-          <Text style={isClan1 ? styles.opponentDistance : styles.distance}>
-            {clan2Distance.toFixed(1)} km
+          <Text style={styles.label}>km</Text>
+          <Text style={styles.clanName} numberOfLines={1}>
+            {clan2Name}
           </Text>
         </View>
       </View>
@@ -52,7 +68,7 @@ export default function WarScoreboardCard({
             styles.progressFill,
             {
               width: `${clan1Percent}%`,
-              backgroundColor: isClan1 ? "#FF6B35" : "#0A84FF",
+              backgroundColor: isClan1 ? myColor : opponentColor,
             },
           ]}
         />
@@ -61,11 +77,20 @@ export default function WarScoreboardCard({
             styles.progressFill,
             {
               width: `${clan2Percent}%`,
-              backgroundColor: isClan1 ? "#0A84FF" : "#FF6B35",
+              backgroundColor: isClan1 ? opponentColor : myColor,
             },
           ]}
         />
-        <View style={styles.halfwayMarker} />
+        <View style={styles.midMarker} />
+      </View>
+
+      <View style={styles.percentRow}>
+        <Text style={[styles.percent, { color: isClan1 ? myColor : opponentColor }]}>
+          {clan1Percent.toFixed(0)}%
+        </Text>
+        <Text style={[styles.percent, { color: isClan1 ? opponentColor : myColor }]}>
+          {clan2Percent.toFixed(0)}%
+        </Text>
       </View>
     </View>
   );
@@ -73,57 +98,79 @@ export default function WarScoreboardCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#FFF5F0",       
-    borderRadius: 12,                    
-    marginHorizontal: 16,
-    marginTop: 12,
-    padding: 20,
+    backgroundColor: colors.bgSurface,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: "#FFD4C0",            
+    borderColor: colors.borderDefault,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.md,
+    padding: spacing.lg,
   },
-  identityRow: {
+  scoreRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "space-between",
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
-  clanBlock: { alignItems: "center", flex: 1 },
-  clanName: { color: "#1A1A1A", fontSize: 15, fontWeight: "700" },
-  distance: {
-    color: "#FF6B35",                   
-    fontSize: 24,
-    fontWeight: "800",
-    marginTop: 4,
+  clanBlock: {
+    alignItems: "center",
+    flex: 1,
   },
-  opponentName: { color: "#0A84FF", fontSize: 15, fontWeight: "700" },
-  opponentDistance: {
-    color: "#0A84FF",                    
-    fontSize: 24,
-    fontWeight: "800",
-    marginTop: 4,
+  score: {
+    fontSize: typography.displayHero.fontSize,
+    fontWeight: typography.displayHero.fontWeight,
+  },
+  label: {
+    color: colors.textSecondary,
+    fontSize: typography.caption.fontSize,
+    marginTop: -4,
+    marginBottom: spacing.sm,
+  },
+  clanName: {
+    color: colors.textPrimary,
+    fontSize: typography.body.fontSize,
+    fontWeight: "600",
+    textAlign: "center",
   },
   vsBadge: {
-    backgroundColor: "#E0E0DC",      
-    borderRadius: 99,
-    paddingHorizontal: 12,
+    backgroundColor: colors.bgInput,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.md,
     paddingVertical: 6,
+    marginTop: spacing.sm,
+    marginHorizontal: spacing.sm,
   },
-  vsText: { color: "#1A1A1A", fontSize: 13, fontWeight: "700" },
+  vsText: {
+    color: colors.textSecondary,
+    fontSize: typography.badge.fontSize,
+    fontWeight: typography.badge.fontWeight,
+  },
   progressBar: {
     flexDirection: "row",
     height: 10,
     borderRadius: 5,
     overflow: "hidden",
-    backgroundColor: "#E0E0DC",
+    backgroundColor: colors.bgInput,
     position: "relative",
   },
-  progressFill: { height: "100%" },
-  halfwayMarker: {
+  progressFill: {
+    height: "100%",
+  },
+  midMarker: {
     position: "absolute",
     left: "50%",
     width: 2,
     height: "100%",
-    backgroundColor: "rgba(255,255,255,0.5)",
+    backgroundColor: colors.bgPrimary,
     transform: [{ translateX: -1 }],
+  },
+  percentRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: spacing.sm,
+  },
+  percent: {
+    fontSize: typography.caption.fontSize,
+    fontWeight: "600",
   },
 });

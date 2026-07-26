@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { CaretLeftIcon, DotsThreeVerticalIcon } from "phosphor-react-native";
+import { colors } from "../../../../theme";
 import { useAuth } from "../../../../context/Auth";
 import UserAvatar from "../../../../components/UserAvatar";
 import {
@@ -34,10 +35,10 @@ import { getUserProfiles } from "../../../../services/userService";
 import type { Clan, ClanJoinRequest, ClanRole, UserProfile } from "../../../../types/index";
 
 const ROLE_COLORS: Record<ClanRole, string> = {
-  Leader: "#FF6B35",
-  "Co-Leader": "#0A84FF",
-  Moderator: "#34C759",
-  Member: "#8E8E93",
+  Leader: "#D4952B",
+  "Co-Leader": "#003153",
+  Moderator: "#88BB00",
+  Member: "#9E9E9E",
 };
 
 interface MemberRow {
@@ -180,7 +181,9 @@ export default function ClanMembersScreen() {
   if (loading || !clan) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator style={{ marginTop: 60 }} color="#FF6B35" />
+        <View style={styles.centered}>
+          <View style={styles.loadingDot} />
+        </View>
       </View>
     );
   }
@@ -345,7 +348,7 @@ export default function ClanMembersScreen() {
                   style={styles.actionSheetOption}
                   onPress={() => handleTransferLeadership(selectedMember)}
                 >
-                  <Text style={[styles.actionSheetOptionText, { color: "#FF6B35" }]}>
+                  <Text style={[styles.actionSheetOptionText, { color: colors.accentAmber }]}>
                     Transfer Leadership
                   </Text>
                 </TouchableOpacity>
@@ -366,7 +369,9 @@ export default function ClanMembersScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" },
+  container: { flex: 1, backgroundColor: "#FAF8F5" },
+  centered: { flex: 1, justifyContent: "center", alignItems: "center" },
+  loadingDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#003153", opacity: 0.6 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -374,10 +379,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 16,
   },
-  headerTitle: { color: "#1A1A1A", fontSize: 17, fontWeight: "600" },
+  headerTitle: { color: "#111110", fontSize: 17, fontWeight: "600" },
   listContent: { paddingHorizontal: 16 },
   sectionLabel: {
-    color: "#8E8E93",
+    color: "#9E9E9E",
     fontSize: 11,
     fontWeight: "600",
     letterSpacing: 0.5,
@@ -386,7 +391,7 @@ const styles = StyleSheet.create({
   },
   row: { flexDirection: "row", alignItems: "center", paddingVertical: 10, gap: 12 },
   rowInfo: { flex: 1 },
-  rowName: { color: "#1A1A1A", fontSize: 15, fontWeight: "500" },
+  rowName: { color: "#111110", fontSize: 15, fontWeight: "500" },
   roleBadge: {
     alignSelf: "flex-start",
     paddingHorizontal: 8,
@@ -397,24 +402,24 @@ const styles = StyleSheet.create({
   roleText: { fontSize: 11, fontWeight: "600" },
   requestRow: { flexDirection: "row", alignItems: "center", paddingVertical: 10, gap: 12 },
   requestActions: { flexDirection: "row", gap: 12, marginLeft: "auto" },
-  acceptBtn: { backgroundColor: "#FF6B35", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
+  acceptBtn: { backgroundColor: "#003153", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   acceptBtnText: { color: "#FFFFFF", fontSize: 13, fontWeight: "600" },
   declineBtn: { paddingHorizontal: 12, paddingVertical: 6 },
-  declineBtnText: { color: "#FF3B30", fontSize: 13, fontWeight: "500", textDecorationLine: "underline" },
+  declineBtnText: { color: "#E62E50", fontSize: 13, fontWeight: "500", textDecorationLine: "underline" },
   actionSheetOverlay: {
     flex: 1,
-    backgroundColor: "#00000066",
+    backgroundColor: "rgba(0,0,0,0.4)",
     justifyContent: "flex-end",
   },
   actionSheetCard: {
-    backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: "#FAF8F5",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
     padding: 20,
     paddingBottom: 32,
   },
   actionSheetTitle: {
-    color: "#1A1A1A",
+    color: "#111110",
     fontSize: 15,
     fontWeight: "700",
     textAlign: "center",
@@ -424,9 +429,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: "#F2F2F7",
+    borderTopColor: "#F0EEE9",
   },
-  actionSheetOptionText: { color: "#0A84FF", fontSize: 17, fontWeight: "400" },
+  actionSheetOptionText: { color: "#003153", fontSize: 17, fontWeight: "400" },
   actionSheetCancel: { marginTop: 8 },
-  actionSheetCancelText: { color: "#FF3B30", fontSize: 17, fontWeight: "600" },
+  actionSheetCancelText: { color: "#E62E50", fontSize: 17, fontWeight: "600" },
 });

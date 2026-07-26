@@ -1,5 +1,6 @@
 import { collection, doc, getDoc, getDocs, query, where, orderBy, startAt, endAt, writeBatch, updateDoc, deleteDoc, arrayUnion, arrayRemove, serverTimestamp, onSnapshot, addDoc, limit } from "firebase/firestore";
-import { db } from "../firebaseConfig"
+import { db, storage } from "../firebaseConfig"
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import type { Clan, ClanRole, ClanPermissions, ClanJoinRequest, } from "../types/index"
 
 export function deriveClanRole(clan: Clan, uid: string): ClanRole | null {
@@ -351,7 +352,7 @@ export async function postAnnouncement(
 
 export async function updateClanDetails(
   clanId: string,
-  updates: { name?: string; description?: string; isPrivate?: boolean }
+  updates: { name?: string; description?: string; isPrivate?: boolean; bannerUrl?: string | null }
 ): Promise<void> {
   try {
     const finalUpdates: typeof updates & { nameLower?: string } = { ...updates };
@@ -371,5 +372,35 @@ export async function disbandClan(clanId: string): Promise<void> {
   } catch (error) {
     console.error("Error disbanding clan:", error);
     throw error;
+  }
+}
+
+export async function uploadClanBanner(
+  clanId: string,
+  imageURI: string
+): Promise<string> {
+  try {
+    const imageBlob: Blob = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.onload = () => resolve(xhr.response);
+      xhr.onerror = (e) => {
+        console.error("Clan banner upload failed:", e);
+        reject(new TypeError("Network request failed"));
+      };
+      xhr.responseType = "blob";
+      xhr.open("GET", imageURI, true);
+      xhr.send(null);
+    });
+
+    const firebaseRef = ref(storage, `clanBanners/${clanId}.jpg`);
+    await uploadBytes(firebaseRef, imageBlob, {
+      contentType: "image/jpeg",
+    });
+
+    (imageBlob as any).close?.();
+    return await getDownloadURL(firebaseRef);
+  } catch (e) {
+    console.error("Clan banner upload failed:", e);
+    throw e;
   }
 }
