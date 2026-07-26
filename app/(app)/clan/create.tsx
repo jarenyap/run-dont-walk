@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { Globe, LockSimple, Camera } from "phosphor-react-native";
+import { GlobeIcon, LockSimpleIcon, CameraIcon } from "phosphor-react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useAuth } from "../../../context/Auth";
 import { createClan, uploadClanBanner } from "../../../services/clanService";
@@ -105,7 +105,7 @@ export default function CreateClanScreen() {
           shape="rounded"
         />
         <View style={styles.bannerHint}>
-          <Camera size={16} color={colors.accentBlue} />
+          <CameraIcon size={16} color={colors.accentBlue} />
           <Text style={styles.bannerHintText}>
             {bannerUri ? "Change banner" : "Add clan banner"}
           </Text>
@@ -146,7 +146,7 @@ export default function CreateClanScreen() {
             style={[styles.visCard, !isPrivate && styles.visCardSelected]}
             onPress={() => setIsPrivate(false)}
           >
-            <Globe
+            <GlobeIcon
               size={24}
               color={!isPrivate ? colors.accentBlue : colors.textTertiary}
             />
@@ -156,7 +156,7 @@ export default function CreateClanScreen() {
             style={[styles.visCard, isPrivate && styles.visCardSelected]}
             onPress={() => setIsPrivate(true)}
           >
-            <LockSimple
+            <LockSimpleIcon
               size={24}
               color={isPrivate ? colors.accentBlue : colors.textTertiary}
             />
