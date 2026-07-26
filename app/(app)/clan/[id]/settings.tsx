@@ -82,6 +82,10 @@ export default function ClanSettingsScreen() {
         updates.bannerUrl = url;
       } catch (e) {
         console.error("Failed to upload banner:", e);
+        Alert.alert(
+          "Banner Upload Failed",
+          "Your banner couldn't be uploaded. Other changes were saved."
+        );
       }
     }
 

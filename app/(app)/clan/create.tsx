@@ -62,11 +62,18 @@ export default function CreateClanScreen() {
       );
 
       if (bannerUri) {
-        const url = await uploadClanBanner(clanId, bannerUri);
-        const { updateClanDetails } = await import(
-          "../../../services/clanService"
-        );
-        await updateClanDetails(clanId, { bannerUrl: url });
+        try {
+          const url = await uploadClanBanner(clanId, bannerUri);
+          const { updateClanDetails } = await import(
+            "../../../services/clanService"
+          );
+          await updateClanDetails(clanId, { bannerUrl: url });
+        } catch {
+          Alert.alert(
+            "Banner Upload Failed",
+            "Your clan was created, but the banner couldn't be uploaded. You can change it later in clan settings."
+          );
+        }
       }
 
       router.replace(`/clan/${clanId}`);

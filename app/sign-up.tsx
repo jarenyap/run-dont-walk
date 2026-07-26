@@ -39,7 +39,8 @@ export default function SignUp() {
       return;
     }
     try {
-      await signUp(trimmedEmail, pass, trimmedName);
+      await signUp(trimmedName, trimmedEmail, pass);
+      router.replace("/(app)/(tabs)/home-feed");
     } catch (e: any) {
       Alert.alert("Sign up failed", getAuthErrorMessage(e.code));
     }

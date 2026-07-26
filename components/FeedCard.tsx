@@ -25,17 +25,21 @@ export default function FeedCard({ run }: Props) {
     (run.likes ?? []).includes(user?.uid ?? "")
   );
   const [pressing, setPressing] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
 
   const accent = runTypeColors[run.type] || colors.accentBlue;
 
   const handleLike = async () => {
-    if (!user?.uid) return;
+    if (!user?.uid || likeLoading) return;
     const wasLiked = liked;
     setLiked(!wasLiked);
+    setLikeLoading(true);
     try {
       await toggleLike(run.id, user.uid, wasLiked);
     } catch {
       setLiked(wasLiked);
+    } finally {
+      setLikeLoading(false);
     }
   };
 
