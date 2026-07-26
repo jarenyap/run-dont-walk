@@ -1,12 +1,26 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, Text, TextInput, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  RefreshControl,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter, useFocusEffect } from "expo-router";
-import { PlusIcon, MagnifyingGlassIcon, XIcon } from "phosphor-react-native";
+import { Plus, MagnifyingGlass, X, CastleTurret } from "phosphor-react-native";
 import { useAuth } from "../../../context/Auth";
-import { getUserClans, discoverPublicClans, searchAllClansByName, deriveClanRole } from "../../../services/clanService";
+import {
+  getUserClans,
+  discoverPublicClans,
+  searchAllClansByName,
+  deriveClanRole,
+} from "../../../services/clanService";
 import ClanCard from "../../../components/ClanCard";
 import type { Clan, ClanRole } from "../../../types/index";
+import { colors, spacing, radius, typography } from "../../../theme";
 
 export default function ClanScreen() {
   const insets = useSafeAreaInsets();
@@ -61,7 +75,9 @@ export default function ClanScreen() {
     try {
       const results = await searchAllClansByName(term);
       const myClanIdsSet = new Set(profile?.clanIds ?? []);
-      setSearchResults(results.filter((clan) => !myClanIdsSet.has(clan.id)));
+      setSearchResults(
+        results.filter((clan) => !myClanIdsSet.has(clan.id))
+      );
     } finally {
       setSearching(false);
     }
@@ -85,22 +101,35 @@ export default function ClanScreen() {
     user ? deriveClanRole(clan, user.uid) : null;
 
   const isSearching = searchVisible && searchTerm.trim() !== "";
-  const listData = isSearching ? searchResults : tab === "my" ? myClans : discoverClans;
+  const listData = isSearching
+    ? searchResults
+    : tab === "my"
+    ? myClans
+    : discoverClans;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
+    <View
+      style={[styles.container, { paddingTop: insets.top + spacing.sm }]}
+    >
       <View style={styles.header}>
         <Text style={styles.title}>Clans</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.iconBtn} onPress={handleToggleSearch}>
             {searchVisible ? (
-              <XIcon size={20} color="#1A1A1A" weight="bold" />
+              <X size={20} color={colors.textPrimary} weight="bold" />
             ) : (
-              <MagnifyingGlassIcon size={20} color="#1A1A1A" weight="bold" />
+              <MagnifyingGlass
+                size={20}
+                color={colors.textPrimary}
+                weight="bold"
+              />
             )}
           </TouchableOpacity>
-          <TouchableOpacity style={styles.createBtn} onPress={() => router.push("/clan/create")}>
-            <PlusIcon size={20} color="#FFFFFF" weight="bold" />
+          <TouchableOpacity
+            style={styles.createBtn}
+            onPress={() => router.push("/clan/create")}
+          >
+            <Plus size={20} color="#FFFFFF" weight="bold" />
           </TouchableOpacity>
         </View>
       </View>
@@ -111,8 +140,8 @@ export default function ClanScreen() {
             style={styles.searchInput}
             value={searchTerm}
             onChangeText={setSearchTerm}
-            placeholder="Search public clans by name..."
-            placeholderTextColor="#8E8E93"
+            placeholder="Search public clans by name"
+            placeholderTextColor={colors.textTertiary}
             autoFocus
           />
         </View>
@@ -124,15 +153,28 @@ export default function ClanScreen() {
             style={[styles.segment, tab === "my" && styles.segmentActive]}
             onPress={() => setTab("my")}
           >
-            <Text style={[styles.segmentText, tab === "my" && styles.segmentTextActive]}>
+            <Text
+              style={[
+                styles.segmentText,
+                tab === "my" && styles.segmentTextActive,
+              ]}
+            >
               My Clans
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.segment, tab === "discover" && styles.segmentActive]}
+            style={[
+              styles.segment,
+              tab === "discover" && styles.segmentActive,
+            ]}
             onPress={() => setTab("discover")}
           >
-            <Text style={[styles.segmentText, tab === "discover" && styles.segmentTextActive]}>
+            <Text
+              style={[
+                styles.segmentText,
+                tab === "discover" && styles.segmentTextActive,
+              ]}
+            >
               Discover
             </Text>
           </TouchableOpacity>
@@ -144,41 +186,68 @@ export default function ClanScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          !isSearching ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} /> : undefined
+          !isSearching ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.accentBlue}
+            />
+          ) : undefined
         }
         renderItem={({ item }) => (
           <ClanCard
             clan={item}
-            role={!isSearching && tab === "my" ? getRoleForClan(item) : null}
+            role={
+              !isSearching && tab === "my" ? getRoleForClan(item) : null
+            }
             onPress={() => router.push(`/clan/${item.id}`)}
           />
         )}
         ListHeaderComponent={
           isSearching && searching ? (
-            <ActivityIndicator style={{ marginTop: 20 }} color="#FF6B35" />
+            <View style={styles.searchingIndicator}>
+              <View style={styles.searchingDot} />
+            </View>
           ) : null
         }
         ListEmptyComponent={
           isSearching && !searching ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyEmoji}>🔍</Text>
-              <Text style={styles.emptyTitle}>No clans found for "{searchTerm}"</Text>
-              <Text style={styles.emptySubtext}>Try a different name.</Text>
+              <MagnifyingGlass
+                size={48}
+                color={colors.textTertiary}
+                weight="light"
+              />
+              <Text style={styles.emptyTitle}>
+                No clans found for "{searchTerm}"
+              </Text>
+              <Text style={styles.emptySubtext}>
+                Try a different name.
+              </Text>
             </View>
           ) : !isSearching && !loading ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyEmoji}>🏕️</Text>
+              <CastleTurret
+                size={48}
+                color={colors.textTertiary}
+                weight="light"
+              />
               <Text style={styles.emptyTitle}>
-                {tab === "my" ? "You're not in any clans yet" : "No public clans found"}
+                {tab === "my"
+                  ? "You're not in any clans yet"
+                  : "No public clans found"}
               </Text>
               <Text style={styles.emptySubtext}>
                 {tab === "my"
-                  ? "Create one or find one to join!"
+                  ? "Create one or discover a clan to join."
                   : "Check back later or create your own."}
               </Text>
               {tab === "my" && (
-                <TouchableOpacity style={styles.emptyCta} onPress={() => router.push("/clan/create")}>
-                  <Text style={styles.emptyCtaText}>Create a Clan</Text>
+                <TouchableOpacity
+                  style={styles.emptyCta}
+                  onPress={() => router.push("/clan/create")}
+                >
+                  <Text style={styles.emptyCtaText}>Create a clan</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -190,58 +259,123 @@ export default function ClanScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" },
+  container: {
+    flex: 1,
+    backgroundColor: colors.bgPrimary,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.md,
   },
-  title: { fontSize: 28, fontWeight: "700", color: "#1A1A1A" },
-  headerActions: { flexDirection: "row", alignItems: "center", gap: 8 },
+  title: {
+    fontSize: typography.displayMedium.fontSize,
+    fontWeight: typography.displayMedium.fontWeight,
+    color: colors.textPrimary,
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
   iconBtn: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: "#F5F5F0",
+    borderRadius: radius.full,
+    backgroundColor: colors.bgInput,
     alignItems: "center",
     justifyContent: "center",
   },
   createBtn: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: "#FF6B35",
+    borderRadius: radius.full,
+    backgroundColor: colors.accentBlue,
     alignItems: "center",
     justifyContent: "center",
   },
-  searchBarContainer: { paddingHorizontal: 16, paddingBottom: 8 },
+  searchBarContainer: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
   searchInput: {
-    backgroundColor: "#F2F2F7",
-    color: "#000000",
-    borderRadius: 10,
-    paddingHorizontal: 14,
+    backgroundColor: colors.bgInput,
+    color: colors.textPrimary,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md,
     paddingVertical: 12,
-    fontSize: 16,
+    fontSize: typography.body.fontSize,
   },
   segmented: {
     flexDirection: "row",
-    marginHorizontal: 16,
-    backgroundColor: "#F5F5F0",
-    borderRadius: 10,
-    padding: 4,
-    marginBottom: 16,
+    marginHorizontal: spacing.md,
+    backgroundColor: colors.bgInput,
+    borderRadius: radius.sm,
+    padding: 3,
+    marginBottom: spacing.md,
   },
-  segment: { flex: 1, paddingVertical: 8, alignItems: "center", borderRadius: 8 },
-  segmentActive: { backgroundColor: "#FF6B35" },
-  segmentText: { color: "#8E8E93", fontSize: 14, fontWeight: "600" },
-  segmentTextActive: { color: "#FFFFFF" },
-  listContent: { paddingBottom: 24 },
-  emptyState: { alignItems: "center", marginTop: 60, paddingHorizontal: 32 },
-  emptyEmoji: { fontSize: 48, marginBottom: 12 },
-  emptyTitle: { color: "#1A1A1A", fontSize: 17, fontWeight: "600", textAlign: "center" },
-  emptySubtext: { color: "#8E8E93", fontSize: 14, textAlign: "center", marginTop: 6, marginBottom: 20 },
-  emptyCta: { backgroundColor: "#FF6B35", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 },
-  emptyCtaText: { color: "#FFFFFF", fontWeight: "600", fontSize: 15 },
+  segment: {
+    flex: 1,
+    paddingVertical: spacing.sm,
+    alignItems: "center",
+    borderRadius: radius.sm - 1,
+  },
+  segmentActive: {
+    backgroundColor: colors.accentBlue,
+  },
+  segmentText: {
+    color: colors.textSecondary,
+    fontSize: typography.caption.fontSize,
+    fontWeight: "600",
+  },
+  segmentTextActive: {
+    color: "#FFFFFF",
+  },
+  listContent: {
+    paddingBottom: spacing.lg,
+  },
+  searchingIndicator: {
+    alignItems: "center",
+    paddingVertical: spacing.lg,
+  },
+  searchingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.accentBlue,
+    opacity: 0.6,
+  },
+  emptyState: {
+    alignItems: "center",
+    marginTop: 60,
+    paddingHorizontal: spacing.xl,
+    gap: spacing.sm,
+  },
+  emptyTitle: {
+    color: colors.textPrimary,
+    fontSize: typography.body.fontSize,
+    fontWeight: "600",
+    textAlign: "center",
+    marginTop: spacing.sm,
+  },
+  emptySubtext: {
+    color: colors.textSecondary,
+    fontSize: typography.caption.fontSize,
+    textAlign: "center",
+    marginBottom: spacing.sm,
+  },
+  emptyCta: {
+    backgroundColor: colors.accentBlue,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 12,
+    borderRadius: radius.sm,
+    marginTop: spacing.sm,
+  },
+  emptyCtaText: {
+    color: "#FFFFFF",
+    fontWeight: "600",
+    fontSize: typography.body.fontSize,
+  },
 });

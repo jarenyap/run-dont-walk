@@ -24,7 +24,12 @@ import {
 } from "../services/clanService";
 import type { Clan } from "../types/index";
 
-jest.mock("../firebaseConfig", () => ({ db: {} }));
+jest.mock("../firebaseConfig", () => ({ db: {}, storage: {} }));
+jest.mock("firebase/storage", () => ({
+  ref: jest.fn(),
+  uploadBytes: jest.fn(),
+  getDownloadURL: jest.fn(),
+}));
 
 const mockCommit = jest.fn().mockResolvedValue(undefined);
 const mockSet = jest.fn();

@@ -1,63 +1,89 @@
 import { Tabs, router } from "expo-router";
-import { HouseIcon, SneakerMoveIcon, CastleTurretIcon, CalendarBlankIcon, UserCircleIcon } from "phosphor-react-native";
+import {
+  House,
+  SneakerMove,
+  CastleTurret,
+  CalendarBlank,
+  UserCircle,
+} from "phosphor-react-native";
+import { colors } from "../../../theme";
 
 export default function TabLayout() {
-    return (
-        <Tabs screenOptions={{
-            tabBarActiveTintColor: '#5F19FF',
-            tabBarInactiveTintColor: '#8E8E93',
-            tabBarStyle: { backgroundColor: '#F9F9F9' },
+  return (
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: colors.accentBlue,
+        tabBarInactiveTintColor: colors.textTertiary,
+        tabBarStyle: {
+          backgroundColor: colors.bgSecondary,
+          borderTopColor: colors.borderDefault,
+          borderTopWidth: 1,
+        },
+      }}
+    >
+      <Tabs.Screen
+        name="home-feed"
+        options={{
+          title: "Walk Don't Run",
+          tabBarLabel: "Home",
+          headerTitleStyle: {
+            fontWeight: "800",
+            fontSize: 20,
+            color: colors.textPrimary,
+          },
+          headerStyle: { backgroundColor: colors.bgPrimary },
+          headerShadowVisible: false,
+          tabBarIcon: ({ color }) => (
+            <House color={color} size={24} />
+          ),
         }}
-        >
-        <Tabs.Screen
-            name="home-feed"
-            options={{
-                title: "Walk Don't Run",
-                tabBarLabel: "Home",
-                headerTitleStyle: { fontWeight: "700", fontSize: 20},
-                headerStyle: { backgroundColor: "#F2F2F7" },
-                headerShadowVisible: false as boolean,
-                tabBarIcon: ({ color }) => <HouseIcon color={typeof color === "string" ? color : "#8E8E93"} size={24} />,
-            }}
-        />
-        <Tabs.Screen
-            name="events"
-            options={{
-                title: "Events",
-                headerShown: false,
-                tabBarIcon: ({ color }) => <CalendarBlankIcon color={typeof color === "string" ? color : "#8E8E93"} size={24} />,
-            }}
-        />
-        <Tabs.Screen
-            name="log-run-dummy"
-            options={{
-                title: "Log Run",
-                headerShown: false,
-                tabBarIcon: ({ color }) => <SneakerMoveIcon color={typeof color === "string" ? color : "#8E8E93"} size={24} />,
-            }}
-            listeners={{
-                tabPress: (e) => {
-                    e.preventDefault();
-                    router.push("/(app)/log-run");
-                },
-            }}
-        />
-        <Tabs.Screen
-            name="clan"
-            options={{
-                title: "Clan",
-                headerShown: false,
-                tabBarIcon: ({ color }) => <CastleTurretIcon color={typeof color === "string" ? color : "#8E8E93"} size={24} />,
-            }}
-        />
-        <Tabs.Screen
-            name="profile"
-            options={{
-                title: "Profile",
-                headerShown: false,
-                tabBarIcon: ({ color }) => <UserCircleIcon color={typeof color === "string" ? color : "#8E8E93"} size={24} />,
-            }}
-        />
+      />
+      <Tabs.Screen
+        name="events"
+        options={{
+          title: "Events",
+          headerShown: false,
+          tabBarIcon: ({ color }) => (
+            <CalendarBlank color={color} size={24} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="log-run-dummy"
+        options={{
+          title: "Log Run",
+          headerShown: false,
+          tabBarIcon: ({ color }) => (
+            <SneakerMove color={color} size={24} />
+          ),
+        }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            router.push("/(app)/log-run");
+          },
+        }}
+      />
+      <Tabs.Screen
+        name="clan"
+        options={{
+          title: "Clans",
+          headerShown: false,
+          tabBarIcon: ({ color }) => (
+            <CastleTurret color={color} size={24} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          headerShown: false,
+          tabBarIcon: ({ color }) => (
+            <UserCircle color={color} size={24} />
+          ),
+        }}
+      />
     </Tabs>
-    );
+  );
 }

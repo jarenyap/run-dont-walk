@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { GearSixIcon, CaretLeftIcon } from "phosphor-react-native";
+import { GearSix, CaretLeft, Sword, Envelope } from "phosphor-react-native";
 import { useAuth } from "../../../../context/Auth";
 import UserAvatar from "../../../../components/UserAvatar";
 import {
@@ -27,9 +27,13 @@ import {
   leaveClan,
   hasPendingJoinRequest,
 } from "../../../../services/clanService";
-import { subscribeToClanWar, getPastWars } from "../../../../services/clanWarService";
+import {
+  subscribeToClanWar,
+  getPastWars,
+} from "../../../../services/clanWarService";
 import type { ClanWarWithId } from "../../../../services/clanWarService";
 import type { Clan } from "../../../../types/index";
+import { colors, spacing, radius, typography } from "../../../../theme";
 
 export default function ClanHomeScreen() {
   const insets = useSafeAreaInsets();
@@ -39,7 +43,8 @@ export default function ClanHomeScreen() {
   const [clan, setClan] = useState<Clan | null>(null);
   const [war, setWar] = useState<ClanWarWithId | null>(null);
   const [pastWars, setPastWars] = useState<ClanWarWithId[]>([]);
-  const [announcementModalVisible, setAnnouncementModalVisible] = useState(false);
+  const [announcementModalVisible, setAnnouncementModalVisible] =
+    useState(false);
   const [announcementText, setAnnouncementText] = useState("");
   const [posting, setPosting] = useState(false);
   const [joining, setJoining] = useState(false);
@@ -64,6 +69,7 @@ export default function ClanHomeScreen() {
     if (!id) return;
     getPastWars(id).then(setPastWars);
   }, [id]);
+
   useEffect(() => {
     if (!id || !user) return;
     hasPendingJoinRequest(id, user.uid).then(setHasRequested);
@@ -149,29 +155,39 @@ export default function ClanHomeScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.bannerWrap}>
-        <View style={styles.banner} />
+        <View style={styles.banner}>
+          <View style={styles.bannerMark}>
+            <UserAvatar
+              uri={clan.bannerUrl}
+              name={clan.name}
+              size={72}
+              shape="rounded"
+            />
+          </View>
+        </View>
+
         <TouchableOpacity
-          style={[styles.backBtn, { top: insets.top + 8 }]}
+          style={[styles.backBtn, { top: insets.top + spacing.sm }]}
           onPress={() => router.back()}
         >
-          <CaretLeftIcon size={20} color="#FFFFFF" weight="bold" />
+          <CaretLeft size={20} color={colors.textPrimary} weight="bold" />
         </TouchableOpacity>
+
         {permissions.canEditClan && (
           <TouchableOpacity
-            style={[styles.settingsBtn, { top: insets.top + 8 }]}
+            style={[styles.settingsBtn, { top: insets.top + spacing.sm }]}
             onPress={() => router.push(`/clan/${clan.id}/settings`)}
           >
-            <GearSixIcon size={20} color="#FFFFFF" weight="fill" />
+            <GearSix size={20} color={colors.textPrimary} weight="fill" />
           </TouchableOpacity>
         )}
-        <View style={styles.avatarWrap}>
-          <UserAvatar uri={clan.bannerUrl} size={72} name={clan.name} />
-        </View>
       </View>
 
       <View style={styles.identityBlock}>
         <Text style={styles.clanName}>{clan.name}</Text>
-        {clan.description ? <Text style={styles.tagline}>"{clan.description}"</Text> : null}
+        {clan.description ? (
+          <Text style={styles.tagline}>{clan.description}</Text>
+        ) : null}
       </View>
 
       <View style={styles.statsRow}>
@@ -182,36 +198,47 @@ export default function ClanHomeScreen() {
         <View style={styles.statDivider} />
         <View style={styles.statCol}>
           <Text style={styles.statNum}>
-            {war?.status === "active" ? "Active" : war?.status === "pending" ? "Pending" : "None"}
+            {war?.status === "active"
+              ? "Active"
+              : war?.status === "pending"
+              ? "Pending"
+              : "None"}
           </Text>
           <Text style={styles.statLabel}>Clan War</Text>
         </View>
         <View style={styles.statDivider} />
         <View style={styles.statCol}>
-          <Text style={styles.statNum}>{clan.isPrivate ? "Private" : "Public"}</Text>
+          <Text style={styles.statNum}>
+            {clan.isPrivate ? "Private" : "Public"}
+          </Text>
           <Text style={styles.statLabel}>Visibility</Text>
         </View>
       </View>
 
-      {war && (war.status === "active" || war.status === "pending") && role !== null && (
-        <TouchableOpacity
-          style={styles.warBanner}
-          onPress={() => router.push(`/clan/${clan.id}/war`)}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.warBannerText}>
-            {war.status === "active"
-              ? "⚔️ Clan War active! View scoreboard"
-              : "📨 Pending war challenge — View details"}
-          </Text>
-          <Text style={styles.warBannerArrow}>›</Text>
-        </TouchableOpacity>
-      )}
+      {war &&
+        (war.status === "active" || war.status === "pending") &&
+        role !== null && (
+          <TouchableOpacity
+            style={styles.warBanner}
+            onPress={() => router.push(`/clan/${clan.id}/war`)}
+            activeOpacity={0.8}
+          >
+            <Sword size={18} color="#FFFFFF" />
+            <Text style={styles.warBannerText}>
+              {war.status === "active"
+                ? "Clan War active — View scoreboard"
+                : "Pending war challenge — View details"}
+            </Text>
+            <Text style={styles.warBannerArrow}>&rsaquo;</Text>
+          </TouchableOpacity>
+        )}
 
       {role === null && (
         <View style={styles.joinSection}>
           <Text style={styles.joinHeading}>
-            {clan.isPrivate ? "Request to join this clan" : "Join this clan"}
+            {clan.isPrivate
+              ? "Request to join this clan"
+              : "Join this clan"}
           </Text>
           <Text style={styles.joinSubtext}>
             {clan.isPrivate
@@ -219,7 +246,10 @@ export default function ClanHomeScreen() {
               : "Join instantly and start participating in events and wars."}
           </Text>
           <TouchableOpacity
-            style={[styles.joinBtn, (joining || hasRequested) && styles.joinBtnDisabled]}
+            style={[
+              styles.joinBtn,
+              (joining || hasRequested) && styles.joinBtnDisabled,
+            ]}
             onPress={handleJoinClan}
             disabled={joining || hasRequested}
           >
@@ -243,23 +273,34 @@ export default function ClanHomeScreen() {
         onPress={() => router.push(`/clan/${clan.id}/members`)}
       >
         <Text style={styles.sectionTitle}>Members</Text>
-        <Text style={styles.viewAll}>View all &gt;</Text>
+        <Text style={styles.viewAll}>View all</Text>
       </TouchableOpacity>
 
       <View style={styles.announcementSection}>
         <Text style={styles.sectionTitle}>Announcements</Text>
         {clan.announcement ? (
           <View style={styles.announcementCard}>
-            <Text style={styles.announcementAuthor}>{clan.announcement.authorName}</Text>
-            <Text style={styles.announcementText}>{clan.announcement.text}</Text>
+            <Text style={styles.announcementAuthor}>
+              {clan.announcement.authorName}
+            </Text>
+            <Text style={styles.announcementText}>
+              {clan.announcement.text}
+            </Text>
           </View>
         ) : (
-          <Text style={styles.emptyAnnouncement}>No announcements yet</Text>
+          <Text style={styles.emptyAnnouncement}>
+            No announcements yet
+          </Text>
         )}
         {permissions.canPostAnnouncement && (
-          <TouchableOpacity style={styles.postBtn} onPress={handleOpenAnnouncementModal}>
+          <TouchableOpacity
+            style={styles.postBtn}
+            onPress={handleOpenAnnouncementModal}
+          >
             <Text style={styles.postBtnText}>
-              {clan.announcement ? "Edit announcement" : "+ Post announcement"}
+              {clan.announcement
+                ? "Edit announcement"
+                : "Post announcement"}
             </Text>
           </TouchableOpacity>
         )}
@@ -279,12 +320,17 @@ export default function ClanHomeScreen() {
           <Text style={styles.sectionTitle}>War History</Text>
           {canManageWar && (
             <TouchableOpacity
-              style={[styles.startWarBtn, clan?.currentWarId && styles.startWarBtnDisabled]}
+              style={[
+                styles.startWarBtn,
+                clan?.currentWarId && styles.startWarBtnDisabled,
+              ]}
               onPress={() => router.push(`/clan/${clan?.id}/war`)}
               disabled={!!clan?.currentWarId}
             >
               <Text style={styles.startWarBtnText}>
-                {clan?.currentWarId ? "War in progress" : "Start a Clan War"}
+                {clan?.currentWarId
+                  ? "War in progress"
+                  : "Start a Clan War"}
               </Text>
             </TouchableOpacity>
           )}
@@ -295,17 +341,23 @@ export default function ClanHomeScreen() {
               const won = pw.winnerId === clan?.id;
               const isTie = pw.winnerId === null;
               const myName = clan?.name ?? "";
-              const opponentName = pw.clan1Id === id ? pw.clan2Name : pw.clan1Name;
-              const myScore = pw.clan1Id === id ? pw.clan1Distance : pw.clan2Distance;
-              const oppScore = pw.clan1Id === id ? pw.clan2Distance : pw.clan1Distance;
+              const opponentName =
+                pw.clan1Id === id ? pw.clan2Name : pw.clan1Name;
+              const myScore =
+                pw.clan1Id === id
+                  ? pw.clan1Distance
+                  : pw.clan2Distance;
+              const oppScore =
+                pw.clan1Id === id
+                  ? pw.clan2Distance
+                  : pw.clan1Distance;
               return (
                 <TouchableOpacity
                   key={pw.id}
-                  style={[
-                    styles.pastWarRow,
-                    { backgroundColor: won ? "#34C75915" : isTie ? "#F5F5F0" : "#FF3B3015" },
-                  ]}
-                  onPress={() => router.push(`/clan/${id}/war?warId=${pw.id}`)}
+                  style={styles.pastWarRow}
+                  onPress={() =>
+                    router.push(`/clan/${id}/war?warId=${pw.id}`)
+                  }
                   activeOpacity={0.7}
                 >
                   <View style={styles.pastWarInfo}>
@@ -316,8 +368,21 @@ export default function ClanHomeScreen() {
                       {myScore} km — {oppScore} km
                     </Text>
                   </View>
-                  <View style={[styles.pastWarBadge, { backgroundColor: won ? "#34C759" : isTie ? "#8E8E93" : "#FF3B30" }]}>
-                    <Text style={styles.pastWarBadgeText}>{won ? "W" : isTie ? "T" : "L"}</Text>
+                  <View
+                    style={[
+                      styles.pastWarBadge,
+                      {
+                        backgroundColor: won
+                          ? colors.accentVolt
+                          : isTie
+                          ? colors.textTertiary
+                          : colors.accentCoral,
+                      },
+                    ]}
+                  >
+                    <Text style={styles.pastWarBadgeText}>
+                      {won ? "W" : isTie ? "T" : "L"}
+                    </Text>
                   </View>
                 </TouchableOpacity>
               );
@@ -338,42 +403,45 @@ export default function ClanHomeScreen() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Post Announcement</Text>
-            <TextInput
-              style={styles.modalInput}
-              value={announcementText}
-              onChangeText={setAnnouncementText}
-              placeholder="Share an update with your clan..."
-              placeholderTextColor="#8E8E93"
-              multiline
-              numberOfLines={4}
-              maxLength={280}
-              autoFocus
-            />
-            <Text style={styles.modalCounter}>{announcementText.length}/280</Text>
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={styles.modalCancelBtn}
-                onPress={() => setAnnouncementModalVisible(false)}
-                disabled={posting}
-              >
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.modalPostBtn,
-                  (!announcementText.trim() || posting) && styles.modalPostBtnDisabled,
-                ]}
-                onPress={handlePostAnnouncement}
-                disabled={!announcementText.trim() || posting}
-              >
-                {posting ? (
-                  <ActivityIndicator color="#FFFFFF" size="small" />
-                ) : (
-                  <Text style={styles.modalPostText}>Post</Text>
-                )}
-              </TouchableOpacity>
-            </View>
+              <Text style={styles.modalTitle}>Post Announcement</Text>
+              <TextInput
+                style={styles.modalInput}
+                value={announcementText}
+                onChangeText={setAnnouncementText}
+                placeholder="Share an update with your clan"
+                placeholderTextColor={colors.textTertiary}
+                multiline
+                numberOfLines={4}
+                maxLength={280}
+                autoFocus
+              />
+              <Text style={styles.modalCounter}>
+                {announcementText.length}/280
+              </Text>
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.modalCancelBtn}
+                  onPress={() => setAnnouncementModalVisible(false)}
+                  disabled={posting}
+                >
+                  <Text style={styles.modalCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.modalPostBtn,
+                    (!announcementText.trim() || posting) &&
+                      styles.modalPostBtnDisabled,
+                  ]}
+                  onPress={handlePostAnnouncement}
+                  disabled={!announcementText.trim() || posting}
+                >
+                  {posting ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" />
+                  ) : (
+                    <Text style={styles.modalPostText}>Post</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </KeyboardAvoidingView>
@@ -383,189 +451,345 @@ export default function ClanHomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" },
-  loadingText: { color: "#8E8E93", textAlign: "center", marginTop: 60 },
+  container: {
+    flex: 1,
+    backgroundColor: colors.bgPrimary,
+  },
+  loadingText: {
+    color: colors.textSecondary,
+    textAlign: "center",
+    marginTop: 60,
+  },
   bannerWrap: { position: "relative" },
-  banner: { width: "100%", height: 160, backgroundColor: "#F5F5F0" },
+  banner: {
+    width: "100%",
+    height: 180,
+    backgroundColor: colors.bgSecondary,
+    alignItems: "center",
+    justifyContent: "flex-end",
+    paddingBottom: spacing.xl,
+  },
+  bannerMark: {
+    marginBottom: -spacing.md,
+  },
   backBtn: {
     position: "absolute",
-    left: 16,
+    left: spacing.md,
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: "#00000066",
+    borderRadius: radius.full,
+    backgroundColor: colors.bgSurface,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.borderDefault,
   },
   settingsBtn: {
     position: "absolute",
-    right: 16,
+    right: spacing.md,
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: "#00000066",
+    borderRadius: radius.full,
+    backgroundColor: colors.bgSurface,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.borderDefault,
   },
-  avatarWrap: { position: "absolute", bottom: -32, left: 16 },
-  identityBlock: { paddingTop: 44, paddingHorizontal: 16 },
-  clanName: { color: "#1A1A1A", fontSize: 24, fontWeight: "700" },
-  tagline: { color: "#8E8E93", fontSize: 14, fontStyle: "italic", marginTop: 4 },
+  identityBlock: {
+    paddingTop: spacing.xl,
+    paddingHorizontal: spacing.md,
+    alignItems: "center",
+  },
+  clanName: {
+    color: colors.textPrimary,
+    fontSize: typography.displayLarge.fontSize,
+    fontWeight: typography.displayLarge.fontWeight,
+  },
+  tagline: {
+    color: colors.textSecondary,
+    fontSize: typography.body.fontSize,
+    marginTop: spacing.xs,
+    textAlign: "center",
+    lineHeight: typography.body.lineHeight,
+  },
   statsRow: {
     flexDirection: "row",
-    backgroundColor: "#F5F5F0",
-    borderRadius: 12,
-    marginHorizontal: 16,
-    marginTop: 16,
-    paddingVertical: 16,
+    backgroundColor: colors.bgSurface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderDefault,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.lg,
+    paddingVertical: spacing.md,
   },
   statCol: { flex: 1, alignItems: "center" },
-  statDivider: { width: 1, backgroundColor: "#E0E0DC" },
-  statNum: { color: "#1A1A1A", fontSize: 18, fontWeight: "700" },
-  statLabel: { color: "#8E8E93", fontSize: 12, marginTop: 4 },
+  statDivider: {
+    width: 1,
+    backgroundColor: colors.borderSubtle,
+  },
+  statNum: {
+    color: colors.textPrimary,
+    fontSize: typography.title.fontSize,
+    fontWeight: typography.title.fontWeight,
+  },
+  statLabel: {
+    color: colors.textSecondary,
+    fontSize: typography.badge.fontSize,
+    marginTop: spacing.xs,
+  },
   membersRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
-    marginTop: 24,
+    paddingHorizontal: spacing.md,
+    marginTop: spacing.lg,
   },
-  sectionTitle: { color: "#1A1A1A", fontSize: 17, fontWeight: "600" },
-  viewAll: { color: "#8E8E93", fontSize: 13 },
-  announcementSection: { paddingHorizontal: 16, marginTop: 24, marginBottom: 32 },
-  announcementCard: { backgroundColor: "#F5F5F0", borderRadius: 12, padding: 16, marginTop: 12 },
-  announcementAuthor: { color: "#8E8E93", fontSize: 12, marginBottom: 4 },
-  announcementText: { color: "#1A1A1A", fontSize: 14 },
-  emptyAnnouncement: { color: "#8E8E93", fontSize: 14, marginTop: 12 },
+  sectionTitle: {
+    color: colors.textPrimary,
+    fontSize: typography.bodyBold.fontSize,
+    fontWeight: typography.bodyBold.fontWeight,
+  },
+  viewAll: {
+    color: colors.textSecondary,
+    fontSize: typography.caption.fontSize,
+  },
+  announcementSection: {
+    paddingHorizontal: spacing.md,
+    marginTop: spacing.lg,
+    marginBottom: spacing.xl,
+  },
+  announcementCard: {
+    backgroundColor: colors.bgSurface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderDefault,
+    padding: spacing.md,
+    marginTop: spacing.md,
+  },
+  announcementAuthor: {
+    color: colors.textSecondary,
+    fontSize: typography.badge.fontSize,
+    marginBottom: spacing.xs,
+  },
+  announcementText: {
+    color: colors.textPrimary,
+    fontSize: typography.body.fontSize,
+  },
+  emptyAnnouncement: {
+    color: colors.textSecondary,
+    fontSize: typography.caption.fontSize,
+    marginTop: spacing.md,
+  },
   postBtn: {
-    marginTop: 12,
-    backgroundColor: "#FF6B35",
-    borderRadius: 8,
+    marginTop: spacing.md,
+    backgroundColor: colors.accentBlue,
+    borderRadius: radius.sm,
     paddingVertical: 10,
     alignItems: "center",
   },
-  postBtnText: { color: "#FFFFFF", fontWeight: "600", fontSize: 14 },
-  modalOverlay: { flex: 1, backgroundColor: "#00000066", justifyContent: "flex-end" },
-  modalCard: {
-    backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: 32,
+  postBtnText: {
+    color: "#FFFFFF",
+    fontWeight: "600",
+    fontSize: typography.caption.fontSize,
   },
-  modalTitle: { color: "#1A1A1A", fontSize: 17, fontWeight: "700", marginBottom: 16 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
+  },
+  modalCard: {
+    backgroundColor: colors.bgPrimary,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    padding: spacing.lg,
+    paddingBottom: spacing.xl,
+  },
+  modalTitle: {
+    color: colors.textPrimary,
+    fontSize: typography.bodyBold.fontSize,
+    fontWeight: typography.bodyBold.fontWeight,
+    marginBottom: spacing.md,
+  },
   modalInput: {
-    backgroundColor: "#F5F5F0",
-    borderRadius: 12,
-    padding: 14,
-    color: "#1A1A1A",
-    fontSize: 15,
+    backgroundColor: colors.bgInput,
+    borderRadius: radius.sm,
+    padding: spacing.md,
+    color: colors.textPrimary,
+    fontSize: typography.body.fontSize,
     minHeight: 100,
     textAlignVertical: "top",
-    borderWidth: 1,
-    borderColor: "#E0E0DC",
   },
-  modalCounter: { color: "#8E8E93", fontSize: 12, textAlign: "right", marginTop: 6 },
-  modalActions: { flexDirection: "row", gap: 12, marginTop: 16 },
+  modalCounter: {
+    color: colors.textSecondary,
+    fontSize: typography.badge.fontSize,
+    textAlign: "right",
+    marginTop: 6,
+  },
+  modalActions: {
+    flexDirection: "row",
+    gap: spacing.md,
+    marginTop: spacing.md,
+  },
   modalCancelBtn: {
     flex: 1,
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: radius.sm,
     alignItems: "center",
-    backgroundColor: "#F5F5F0",
+    backgroundColor: colors.bgInput,
   },
-  modalCancelText: { color: "#8E8E93", fontWeight: "600", fontSize: 15 },
+  modalCancelText: {
+    color: colors.textPrimary,
+    fontWeight: "600",
+    fontSize: typography.body.fontSize,
+  },
   modalPostBtn: {
     flex: 1,
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: radius.sm,
     alignItems: "center",
-    backgroundColor: "#FF6B35",
+    backgroundColor: colors.accentBlue,
   },
-  modalPostBtnDisabled: { backgroundColor: "#D1D1D6" },
-  modalPostText: { color: "#FFFFFF", fontWeight: "600", fontSize: 15 },
+  modalPostBtnDisabled: {
+    backgroundColor: colors.bgInput,
+  },
+  modalPostText: {
+    color: "#FFFFFF",
+    fontWeight: "600",
+    fontSize: typography.body.fontSize,
+  },
   joinSection: {
-    marginHorizontal: 16,
-    marginTop: 24,
-    backgroundColor: "#F5F5F0",
-    borderRadius: 12,
-    padding: 20,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.lg,
+    backgroundColor: colors.bgSurface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderDefault,
+    padding: spacing.lg,
     alignItems: "center",
   },
-  joinHeading: { color: "#1A1A1A", fontSize: 16, fontWeight: "700", marginBottom: 8 },
-  joinSubtext: { color: "#8E8E93", fontSize: 14, textAlign: "center", marginBottom: 16 },
+  joinHeading: {
+    color: colors.textPrimary,
+    fontSize: typography.body.fontSize,
+    fontWeight: "700",
+    marginBottom: spacing.sm,
+  },
+  joinSubtext: {
+    color: colors.textSecondary,
+    fontSize: typography.caption.fontSize,
+    textAlign: "center",
+    marginBottom: spacing.md,
+  },
   joinBtn: {
-    backgroundColor: "#FF6B35",
-    borderRadius: 8,
+    backgroundColor: colors.accentBlue,
+    borderRadius: radius.sm,
     paddingVertical: 12,
-    paddingHorizontal: 32,
+    paddingHorizontal: spacing.xl,
     alignItems: "center",
     minWidth: 160,
   },
-  joinBtnDisabled: { backgroundColor: "#D1D1D6" },
-  joinBtnText: { color: "#FFFFFF", fontWeight: "600", fontSize: 15 },
-  leaveBtn: {
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 24,
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    backgroundColor: "#F5F5F0",
-    borderWidth: 1,
-    borderColor: "#FF3B30",
+  joinBtnDisabled: {
+    backgroundColor: colors.bgInput,
   },
-  leaveBtnText: { color: "#FF3B30", fontWeight: "600", fontSize: 15 },
+  joinBtnText: {
+    color: "#FFFFFF",
+    fontWeight: "600",
+    fontSize: typography.body.fontSize,
+  },
+  leaveBtn: {
+    marginHorizontal: spacing.md,
+    marginTop: spacing.md,
+    marginBottom: spacing.lg,
+    paddingVertical: 14,
+    borderRadius: radius.sm,
+    alignItems: "center",
+    backgroundColor: colors.bgSurface,
+    borderWidth: 1,
+    borderColor: colors.accentCoral,
+  },
+  leaveBtnText: {
+    color: colors.accentCoral,
+    fontWeight: "600",
+    fontSize: typography.body.fontSize,
+  },
   warBanner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginHorizontal: 16,
-    marginTop: 16,
-    backgroundColor: "#FF6B35",
-    borderRadius: 12,
-    padding: 14,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.md,
+    backgroundColor: colors.accentBlue,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    gap: spacing.sm,
   },
   warBannerText: {
     color: "#FFFFFF",
-    fontSize: 14,
+    fontSize: typography.caption.fontSize,
     fontWeight: "700",
+    flex: 1,
   },
   warBannerArrow: {
     color: "#FFFFFF",
-    fontSize: 20,
+    fontSize: typography.title.fontSize,
     fontWeight: "700",
   },
-  pastWarsSection: { marginHorizontal: 16, marginTop: 24, marginBottom: 16 },
+  pastWarsSection: {
+    marginHorizontal: spacing.md,
+    marginTop: spacing.lg,
+    marginBottom: spacing.md,
+  },
   pastWarRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 8,
-    backgroundColor: "#F5F5F0",
-    borderRadius: 10,
+    marginTop: spacing.sm,
+    backgroundColor: colors.bgSurface,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.borderDefault,
     overflow: "hidden",
   },
-  pastWarBar: { width: 4, height: "100%", minHeight: 48 },
-  pastWarInfo: { padding: 12, flex: 1 },
-  pastWarResult: { color: "#1A1A1A", fontSize: 14, fontWeight: "600" },
-  pastWarScore: { color: "#8E8E93", fontSize: 13, marginTop: 2 },
+  pastWarInfo: {
+    padding: spacing.md,
+    flex: 1,
+  },
+  pastWarResult: {
+    color: colors.textPrimary,
+    fontSize: typography.caption.fontSize,
+    fontWeight: "600",
+  },
+  pastWarScore: {
+    color: colors.textSecondary,
+    fontSize: typography.badge.fontSize,
+    marginTop: 2,
+  },
   pastWarBadge: {
     width: 32,
     height: 32,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: spacing.md,
   },
-  pastWarBadgeText: { color: "#FFFFFF", fontSize: 14, fontWeight: "800" },
+  pastWarBadgeText: {
+    color: "#FFFFFF",
+    fontSize: typography.caption.fontSize,
+    fontWeight: "800",
+  },
   startWarBtn: {
-    backgroundColor: "#FF6B35",
-    borderRadius: 8,
+    backgroundColor: colors.accentBlue,
+    borderRadius: radius.sm,
     paddingVertical: 12,
     alignItems: "center",
-    marginTop: 12,
-    marginBottom: 16,
+    marginTop: spacing.md,
+    marginBottom: spacing.md,
   },
-  startWarBtnDisabled: { backgroundColor: "#D1D1D6" },
-  startWarBtnText: { color: "#FFFFFF", fontWeight: "600", fontSize: 15 },
+  startWarBtnDisabled: {
+    backgroundColor: colors.bgInput,
+  },
+  startWarBtnText: {
+    color: "#FFFFFF",
+    fontWeight: "600",
+    fontSize: typography.body.fontSize,
+  },
 });

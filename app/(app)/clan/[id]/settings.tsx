@@ -1,8 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Switch, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  Switch,
+  Alert,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { CaretLeftIcon } from "phosphor-react-native";
+import { CaretLeftIcon, Camera } from "phosphor-react-native";
+import * as ImagePicker from "expo-image-picker";
+import { colors } from "../../../../theme";
 import { useAuth } from "../../../../context/Auth";
 import {
   getClanById,
@@ -10,7 +20,9 @@ import {
   disbandClan,
   deriveClanRole,
   getClanPermissions,
+  uploadClanBanner,
 } from "../../../../services/clanService";
+import UserAvatar from "../../../../components/UserAvatar";
 import type { Clan } from "../../../../types/index";
 
 export default function ClanSettingsScreen() {
@@ -22,6 +34,8 @@ export default function ClanSettingsScreen() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
+  const [bannerUri, setBannerUri] = useState<string | null>(null);
+  const [bannerDirty, setBannerDirty] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [confirmName, setConfirmName] = useState("");
 
@@ -36,10 +50,48 @@ export default function ClanSettingsScreen() {
     });
   }, [id]);
 
+  const pickBanner = async () => {
+    const { status } =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission Needed", "Please enable camera roll permissions.");
+      return;
+    }
+
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+    });
+
+    if (!res.canceled) {
+      setBannerUri(res.assets[0].uri);
+      setBannerDirty(true);
+    }
+  };
+
   const handleSave = async () => {
     if (!id) return;
-    await updateClanDetails(id, { name, description, isPrivate });
+
+    const updates: Record<string, any> = { name, description, isPrivate };
+
+    if (bannerDirty && bannerUri && id) {
+      try {
+        const url = await uploadClanBanner(id, bannerUri);
+        updates.bannerUrl = url;
+      } catch (e) {
+        console.error("Failed to upload banner:", e);
+        Alert.alert(
+          "Banner Upload Failed",
+          "Your banner couldn't be uploaded. Other changes were saved."
+        );
+      }
+    }
+
+    await updateClanDetails(id, updates);
     setDirty(false);
+    setBannerDirty(false);
     router.back();
   };
 
@@ -64,7 +116,11 @@ export default function ClanSettingsScreen() {
   if (!clan) return null;
 
   const role = user ? deriveClanRole(clan, user.uid) : null;
-  const canDisband = getClanPermissions(role).canDisbandClan;
+  const perms = getClanPermissions(role);
+  const canDisband = perms.canDisbandClan;
+  const canEditClan = perms.canEditClan;
+
+  const isSaveVisible = dirty || bannerDirty;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
@@ -75,6 +131,23 @@ export default function ClanSettingsScreen() {
         <Text style={styles.headerTitle}>Clan Settings</Text>
         <View style={{ width: 20 }} />
       </View>
+
+      {canEditClan && (
+        <TouchableOpacity style={styles.bannerSection} onPress={pickBanner}>
+          <UserAvatar
+            uri={bannerUri ?? clan.bannerUrl}
+            name={clan.name}
+            size={72}
+            shape="rounded"
+          />
+          <View style={styles.bannerHint}>
+            <Camera size={16} color={colors.accentBlue} />
+            <Text style={styles.bannerHintText}>
+              {bannerUri || clan.bannerUrl ? "Change banner" : "Add banner"}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      )}
 
       <View style={styles.field}>
         <Text style={styles.label}>Name</Text>
@@ -111,7 +184,7 @@ export default function ClanSettingsScreen() {
             setIsPrivate(v);
             setDirty(true);
           }}
-          trackColor={{ false: "#D1D1D6", true: "#FF6B35" }}
+          trackColor={{ false: colors.borderDefault, true: "#003153" }}
         />
       </View>
 
@@ -131,7 +204,7 @@ export default function ClanSettingsScreen() {
         </View>
       )}
 
-      {dirty && (
+      {isSaveVisible && (
         <TouchableOpacity style={styles.saveBar} onPress={handleSave}>
           <Text style={styles.saveBarText}>Save Changes</Text>
         </TouchableOpacity>
@@ -141,24 +214,39 @@ export default function ClanSettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF", paddingHorizontal: 16 },
+  container: { flex: 1, backgroundColor: "#FAF8F5", paddingHorizontal: 16 },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingBottom: 16,
   },
-  headerTitle: { color: "#1A1A1A", fontSize: 17, fontWeight: "600" },
+  headerTitle: { color: "#111110", fontSize: 17, fontWeight: "600" },
+  bannerSection: {
+    alignItems: "center",
+    marginBottom: 24,
+    gap: 8,
+  },
+  bannerHint: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  bannerHintText: {
+    color: "#003153",
+    fontSize: 13,
+    fontWeight: "500",
+  },
   field: { marginBottom: 20 },
-  label: { color: "#8E8E93", fontSize: 13, fontWeight: "600", marginBottom: 8 },
+  label: { color: "#9E9E9E", fontSize: 13, fontWeight: "600", marginBottom: 8 },
   input: {
-    backgroundColor: "#F5F5F0",
+    backgroundColor: "#F0EDE8",
     borderRadius: 12,
     padding: 14,
-    color: "#1A1A1A",
+    color: "#111110",
     fontSize: 15,
     borderWidth: 1,
-    borderColor: "#E0E0DC",
+    borderColor: "#E8E5E0",
   },
   textArea: { minHeight: 80, textAlignVertical: "top" },
   switchRow: {
@@ -168,15 +256,15 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   dangerZone: { marginTop: 12 },
-  dangerLabel: { color: "#FF3B30", fontSize: 11, fontWeight: "600", marginBottom: 12 },
+  dangerLabel: { color: "#E62E50", fontSize: 11, fontWeight: "600", marginBottom: 12 },
   disbandBtn: { marginTop: 12, paddingVertical: 12 },
-  disbandText: { color: "#FF3B30", fontSize: 15, fontWeight: "600" },
+  disbandText: { color: "#E62E50", fontSize: 15, fontWeight: "600" },
   saveBar: {
     position: "absolute",
     bottom: 24,
     left: 16,
     right: 16,
-    backgroundColor: "#FF6B35",
+    backgroundColor: "#003153",
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: "center",

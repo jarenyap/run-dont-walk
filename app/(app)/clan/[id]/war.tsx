@@ -15,7 +15,13 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { CaretLeftIcon, MagnifyingGlassIcon, SwordIcon, TrophyIcon } from "phosphor-react-native";
+import {
+  CaretLeft,
+  MagnifyingGlass,
+  Sword,
+  Trophy,
+  Medal,
+} from "phosphor-react-native";
 import { useAuth } from "../../../../context/Auth";
 import {
   subscribeToClan,
@@ -39,6 +45,7 @@ import {
 } from "../../../../services/clanWarService";
 import WarScoreboardCard from "../../../../components/WarScoreboardCard";
 import type { Clan } from "../../../../types";
+import { colors, spacing, radius, typography } from "../../../../theme";
 
 export default function ClanWarScreen() {
   const insets = useSafeAreaInsets();
@@ -46,28 +53,21 @@ export default function ClanWarScreen() {
   const router = useRouter();
   const { user, profile } = useAuth();
 
-  // clan state
   const [clan, setClan] = useState<Clan | null>(null);
-
-  // war state
   const [war, setWar] = useState<ClanWarWithId | null>(null);
   const [pastWars, setPastWars] = useState<ClanWarWithId[]>([]);
   const [clan1Contributors, setClan1Contributors] = useState<WarContributor[]>([]);
   const [clan2Contributors, setClan2Contributors] = useState<WarContributor[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // challenge modal state
   const [challengeModalVisible, setChallengeModalVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<Clan[]>([]);
   const [searching, setSearching] = useState(false);
   const [busyClans, setBusyClans] = useState<Set<string>>(new Set());
   const [challenging, setChallenging] = useState<string | null>(null);
+  const [handlingWar, setHandlingWar] = useState(false);
 
-  // handlers state
-  const [handlingWar, setHandlingWar] = useState(false); // accept/decline loading
-
-  // real-time clan listener
   useEffect(() => {
     if (!id) return;
     const unsub = subscribeToClan(id, setClan);
@@ -94,7 +94,6 @@ export default function ClanWarScreen() {
     return unsub;
   }, [clan?.currentWarId, id, warId]);
 
-  // top contributors
   useEffect(() => {
     if (!war || war.status !== "active" || !id) return;
     const opponentId = war.clan1Id === id ? war.clan2Id : war.clan1Id;
@@ -105,14 +104,21 @@ export default function ClanWarScreen() {
 
     getClanById(opponentId).then((oppClan) => {
       const oppMemberIds = oppClan?.memberIds ?? [];
-      getWarTopContributors(startDate, endDate, war.clan1Name,
-        isClan1 ? myMemberIds : oppMemberIds).then(setClan1Contributors);
-      getWarTopContributors(startDate, endDate, war.clan2Name,
-        isClan1 ? oppMemberIds : myMemberIds).then(setClan2Contributors);
+      getWarTopContributors(
+        startDate,
+        endDate,
+        war.clan1Name,
+        isClan1 ? myMemberIds : oppMemberIds
+      ).then(setClan1Contributors);
+      getWarTopContributors(
+        startDate,
+        endDate,
+        war.clan2Name,
+        isClan1 ? oppMemberIds : myMemberIds
+      ).then(setClan2Contributors);
     });
   }, [war, id, clan?.memberIds]);
 
-  // challenge clan search
   useEffect(() => {
     if (!searchTerm.trim()) {
       setSearchResults([]);
@@ -146,10 +152,9 @@ export default function ClanWarScreen() {
     return () => clearTimeout(timer);
   }, [searchTerm, id, profile?.clanIds]);
 
-  // permissions
   const myRole = clan && user ? deriveClanRole(clan, user.uid) : null;
   const permissions = getClanPermissions(myRole);
-  const canManageWar = permissions.canStartWar; // Leader or Co-Leader
+  const canManageWar = permissions.canStartWar;
 
   const myClanIsClan1 = id === war?.clan1Id;
   const isTargetClan = id === war?.clan2Id && war?.status === "pending";
@@ -158,19 +163,13 @@ export default function ClanWarScreen() {
     if (!id || !user) return;
     setChallenging(targetClan.id);
     try {
-      await challengeClan(
-        id,
-        clan?.name ?? "Your Clan",
-        targetClan.id,
-        targetClan.name,
-        user.uid
-      );
+      await challengeClan(id, clan?.name ?? "Your Clan", targetClan.id, targetClan.name, user.uid);
       setChallengeModalVisible(false);
       setSearchTerm("");
       Alert.alert("Challenge Sent", `War challenge sent to ${targetClan.name}!`);
     } catch (e: any) {
       console.error("Failed to challenge clan:", e);
-      Alert.alert("Error", e?.message || "Could not send challenge. Please try again.");
+      Alert.alert("Error", e?.message || "Could not send challenge.");
     } finally {
       setChallenging(null);
     }
@@ -202,7 +201,7 @@ export default function ClanWarScreen() {
 
   const handleCancel = async () => {
     if (!war) return;
-    Alert.alert("Cancel Challenge", "Are you sure you want to cancel this challenge?", [
+    Alert.alert("Cancel Challenge", "Are you sure?", [
       { text: "No", style: "cancel" },
       {
         text: "Yes, Cancel",
@@ -218,11 +217,12 @@ export default function ClanWarScreen() {
     ]);
   };
 
-  // loading
   if (loading || !clan) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator style={{ marginTop: 60 }} color="#FF6B35" />
+        <View style={styles.centered}>
+          <View style={styles.loadingDot} />
+        </View>
       </View>
     );
   }
@@ -242,24 +242,24 @@ export default function ClanWarScreen() {
 
   if (war && war.status === "pending") {
     return (
-      <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
+      <View style={[styles.container, { paddingTop: insets.top + spacing.sm }]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
-            <CaretLeftIcon size={20} color="#1A1A1A" weight="bold" />
+            <CaretLeft size={20} color={colors.textPrimary} weight="bold" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Clan War</Text>
           <View style={{ width: 20 }} />
         </View>
 
         <View style={styles.pendingCard}>
-          <TrophyIcon size={48} color="#FF6B35" weight="fill" />
+          <Sword size={48} color={colors.accentBlue} weight="fill" />
           <Text style={styles.pendingTitle}>
             {war.clan1Name} vs {war.clan2Name}
           </Text>
           <Text style={styles.pendingSubtext}>
             {isTargetClan
-              ? `${war.clan1Name} has challenged your clan! Accept or decline.`
-              : `Challenge sent to ${war.clan2Name}. Waiting for their response...`}
+              ? `${war.clan1Name} has challenged your clan. Accept or decline.`
+              : `Challenge sent to ${war.clan2Name}. Waiting for their response.`}
           </Text>
 
           {isTargetClan && canManageWar && (
@@ -298,25 +298,31 @@ export default function ClanWarScreen() {
   if (war && war.status === "completed") {
     const won = war.winnerId === id;
     return (
-      <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
+      <View style={[styles.container, { paddingTop: insets.top + spacing.sm }]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
-            <CaretLeftIcon size={20} color="#1A1A1A" weight="bold" />
+            <CaretLeft size={20} color={colors.textPrimary} weight="bold" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>War Results</Text>
           <View style={{ width: 20 }} />
         </View>
 
         <View style={styles.completedCard}>
-          <Text style={styles.completedEmoji}>{won ? "🏆" : "💪"}</Text>
+          {won ? (
+            <Trophy size={48} color={colors.accentAmber} weight="fill" />
+          ) : (
+            <Medal size={48} color={colors.textTertiary} weight="fill" />
+          )}
           <Text style={styles.completedTitle}>
-            {won ? "Victory!" : "Good effort!"}
+            {won ? "Victory" : "Good effort"}
           </Text>
           <Text style={styles.completedScore}>
-            {war.clan1Name} {war.clan1Distance} km — {war.clan2Distance} km {war.clan2Name}
+            {war.clan1Name} {war.clan1Distance} km — {war.clan2Distance} km{" "}
+            {war.clan2Name}
           </Text>
           <Text style={styles.completedWinner}>
-            Winner: {war.winnerId === war.clan1Id ? war.clan1Name : war.clan2Name}
+            Winner:{" "}
+            {war.winnerId === war.clan1Id ? war.clan1Name : war.clan2Name}
           </Text>
         </View>
       </View>
@@ -324,20 +330,20 @@ export default function ClanWarScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
+    <View style={[styles.container, { paddingTop: insets.top + spacing.sm }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <CaretLeftIcon size={20} color="#1A1A1A" weight="bold" />
+          <CaretLeft size={20} color={colors.textPrimary} weight="bold" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Clan War</Text>
         <View style={{ width: 20 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.emptyStateContainer}>
-        <TrophyIcon size={64} color="#D1D1D6" weight="fill" />
+        <Trophy size={64} color={colors.textTertiary} weight="light" />
         <Text style={styles.emptyTitle}>No Active War</Text>
         <Text style={styles.emptySubtext}>
-          Challenge another clan to a 2-week distance race!
+          Challenge another clan to a distance race.
         </Text>
 
         {canManageWar && (
@@ -349,7 +355,7 @@ export default function ClanWarScreen() {
               setChallengeModalVisible(true);
             }}
           >
-            <SwordIcon size={20} color="#FFF" weight="fill" />
+            <Sword size={20} color="#FFF" weight="fill" />
             <Text style={styles.challengeBtnText}>Challenge a Clan</Text>
           </TouchableOpacity>
         )}
@@ -367,10 +373,7 @@ export default function ClanWarScreen() {
               return (
                 <TouchableOpacity
                   key={pw.id}
-                  style={[
-                    styles.pastWarRow,
-                    { backgroundColor: won ? "#34C75915" : isTie ? "#F5F5F0" : "#FF3B3015" },
-                  ]}
+                  style={styles.pastWarRow}
                   onPress={() => router.push(`/clan/${id}/war?warId=${pw.id}`)}
                   activeOpacity={0.7}
                 >
@@ -382,8 +385,21 @@ export default function ClanWarScreen() {
                       {myScore} km — {oppScore} km
                     </Text>
                   </View>
-                  <View style={[styles.pastWarBadge, { backgroundColor: won ? "#34C759" : isTie ? "#8E8E93" : "#FF3B30" }]}>
-                    <Text style={styles.pastWarBadgeText}>{won ? "W" : isTie ? "T" : "L"}</Text>
+                  <View
+                    style={[
+                      styles.pastWarBadge,
+                      {
+                        backgroundColor: won
+                          ? colors.accentVolt
+                          : isTie
+                          ? colors.textTertiary
+                          : colors.accentCoral,
+                      },
+                    ]}
+                  >
+                    <Text style={styles.pastWarBadgeText}>
+                      {won ? "W" : isTie ? "T" : "L"}
+                    </Text>
                   </View>
                 </TouchableOpacity>
               );
@@ -411,18 +427,20 @@ export default function ClanWarScreen() {
               <View style={styles.dragHandle} />
               <Text style={styles.modalTitle}>Challenge a Clan</Text>
               <View style={styles.searchBar}>
-                <MagnifyingGlassIcon size={16} color="#8E8E93" />
+                <MagnifyingGlass size={16} color={colors.textTertiary} />
                 <TextInput
                   style={styles.searchInput}
                   value={searchTerm}
                   onChangeText={setSearchTerm}
-                  placeholder="Search clans..."
-                  placeholderTextColor="#8E8E93"
+                  placeholder="Search clans"
+                  placeholderTextColor={colors.textTertiary}
                   autoFocus
                 />
               </View>
               {searching ? (
-                <ActivityIndicator style={{ marginTop: 20 }} color="#FF6B35" />
+                <View style={styles.searchingWrap}>
+                  <View style={styles.loadingDot} />
+                </View>
               ) : (
                 <FlatList
                   data={searchResults}
@@ -438,11 +456,15 @@ export default function ClanWarScreen() {
                       <TouchableOpacity
                         style={[
                           styles.challengeSmallBtn,
-                          (challenging !== null || busyClans.has(item.id)) && styles.challengeSmallBtnDisabled,
+                          (challenging !== null || busyClans.has(item.id)) &&
+                            styles.challengeSmallBtnDisabled,
                         ]}
                         onPress={() => {
                           if (busyClans.has(item.id)) {
-                            Alert.alert("Clan is busy", `${item.name} is currently in a clan war. Try again later.`);
+                            Alert.alert(
+                              "Clan is busy",
+                              `${item.name} is currently in a clan war.`
+                            );
                             return;
                           }
                           handleChallenge(item);
@@ -513,9 +535,9 @@ function ActiveWarView({
 
   return (
     <ScrollView style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <TouchableOpacity onPress={onBack}>
-          <CaretLeftIcon size={20} color="#1A1A1A" weight="bold" />
+          <CaretLeft size={20} color={colors.textPrimary} weight="bold" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Clan War</Text>
         <View style={{ width: 20 }} />
@@ -534,7 +556,9 @@ function ActiveWarView({
           <Text style={styles.countdownBannerText}>War has ended</Text>
         ) : (
           <Text style={styles.countdownBannerText}>
-            {days}d {String(hours).padStart(2, "0")}h {String(minutes).padStart(2, "0")}m {String(seconds).padStart(2, "0")}s
+            {days}d {String(hours).padStart(2, "0")}h{" "}
+            {String(minutes).padStart(2, "0")}m{" "}
+            {String(seconds).padStart(2, "0")}s
           </Text>
         )}
         <Text style={styles.countdownBannerLabel}>remaining</Text>
@@ -543,34 +567,55 @@ function ActiveWarView({
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Top Contributors</Text>
         <View style={styles.columnsRow}>
-          <View style={[styles.column, { borderRightWidth: 1, borderRightColor: "#F2F2F7" }]}>
-            <Text style={[styles.columnHeader, { color: "#FF6B35" }]}>{myName}</Text>
+          <View
+            style={[
+              styles.column,
+              { borderRightWidth: 1, borderRightColor: colors.borderSubtle },
+            ]}
+          >
+            <Text style={[styles.columnHeader, { color: colors.accentBlue }]}>
+              {myName}
+            </Text>
             {myContributors.length === 0 ? (
               <Text style={styles.emptyColumn}>No runs yet</Text>
             ) : (
               myContributors.map((c, i) => (
                 <View key={c.uid} style={styles.contributorMini}>
-                  <Text style={styles.medal}>{["🥇", "🥈", "🥉"][i] ?? `${i + 1}.`}</Text>
+                  <Text style={styles.medal}>
+                    {i === 0 ? "1." : i === 1 ? "2." : i === 2 ? "3." : `${i + 1}.`}
+                  </Text>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.contributorName} numberOfLines={1}>{c.name}</Text>
+                    <Text style={styles.contributorName} numberOfLines={1}>
+                      {c.name}
+                    </Text>
                   </View>
-                  <Text style={styles.contributorMiniDistance}>{c.distanceKm} km</Text>
+                  <Text style={styles.contributorMiniDistance}>
+                    {c.distanceKm} km
+                  </Text>
                 </View>
               ))
             )}
           </View>
           <View style={styles.column}>
-            <Text style={[styles.columnHeader, { color: "#0A84FF" }]}>{oppName}</Text>
+            <Text style={[styles.columnHeader, { color: colors.accentCoral }]}>
+              {oppName}
+            </Text>
             {oppContributors.length === 0 ? (
               <Text style={styles.emptyColumn}>No runs yet</Text>
             ) : (
               oppContributors.map((c, i) => (
                 <View key={c.uid} style={styles.contributorMini}>
-                  <Text style={styles.medal}>{["🥇", "🥈", "🥉"][i] ?? `${i + 1}.`}</Text>
+                  <Text style={styles.medal}>
+                    {i === 0 ? "1." : i === 1 ? "2." : i === 2 ? "3." : `${i + 1}.`}
+                  </Text>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.contributorName} numberOfLines={1}>{c.name}</Text>
+                    <Text style={styles.contributorName} numberOfLines={1}>
+                      {c.name}
+                    </Text>
                   </View>
-                  <Text style={styles.contributorMiniDistance}>{c.distanceKm} km</Text>
+                  <Text style={styles.contributorMiniDistance}>
+                    {c.distanceKm} km
+                  </Text>
                 </View>
               ))
             )}
@@ -580,7 +625,7 @@ function ActiveWarView({
 
       <View style={styles.motivationCard}>
         <Text style={styles.motivationText}>
-          Every run you log during the war adds to your clan's total
+          Every run you log during the war adds to your clan's total.
         </Text>
       </View>
     </ScrollView>
@@ -588,185 +633,294 @@ function ActiveWarView({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" },
+  container: { flex: 1, backgroundColor: colors.bgPrimary },
+  centered: { flex: 1, justifyContent: "center", alignItems: "center" },
+  loadingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.accentBlue,
+    opacity: 0.6,
+  },
+  searchingWrap: {
+    alignItems: "center",
+    paddingVertical: spacing.lg,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.md,
   },
-  headerTitle: { color: "#1A1A1A", fontSize: 17, fontWeight: "600" },
-  countdownChip: {
-    backgroundColor: "#FF6B3522",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 99,
+  headerTitle: {
+    color: colors.textPrimary,
+    fontSize: typography.bodyBold.fontSize,
+    fontWeight: typography.bodyBold.fontWeight,
   },
-  countdownText: { color: "#FF6B35", fontSize: 12, fontWeight: "600" },
   countdownBanner: {
     alignItems: "center",
-    marginHorizontal: 16,
-    marginTop: 16,
-    backgroundColor: "#F5F5F0",
-    borderRadius: 12,
-    padding: 16,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.md,
+    backgroundColor: colors.bgSurface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderDefault,
+    padding: spacing.md,
   },
   countdownBannerText: {
-    color: "#1A1A1A",
+    color: colors.textPrimary,
     fontSize: 22,
     fontWeight: "800",
     fontVariant: ["tabular-nums"],
   },
   countdownBannerLabel: {
-    color: "#8E8E93",
-    fontSize: 12,
-    marginTop: 4,
+    color: colors.textSecondary,
+    fontSize: typography.badge.fontSize,
+    marginTop: spacing.xs,
     textTransform: "uppercase",
-    letterSpacing: 1,
   },
-
-  section: { paddingHorizontal: 16, marginTop: 24 },
-  sectionTitle: { color: "#1A1A1A", fontSize: 17, fontWeight: "600", marginBottom: 12 },
-  emptyText: { color: "#8E8E93", fontSize: 14, marginTop: 8 },
-  contributorRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F2F2F7",
-    gap: 12,
+  section: {
+    paddingHorizontal: spacing.md,
+    marginTop: spacing.lg,
   },
-  medal: { fontSize: 18, width: 28, textAlign: "center" },
-  contributorName: { flex: 1, color: "#1A1A1A", fontSize: 15, fontWeight: "500" },
-  contributorClan: { color: "#8E8E93", fontSize: 12, marginTop: 1 },
-  contributorDistance: { color: "#FF6B35", fontSize: 15, fontWeight: "700" },
+  sectionTitle: {
+    color: colors.textPrimary,
+    fontSize: typography.bodyBold.fontSize,
+    fontWeight: typography.bodyBold.fontWeight,
+    marginBottom: spacing.md,
+  },
   columnsRow: { flexDirection: "row" },
-  column: { flex: 1, paddingHorizontal: 10, paddingVertical: 4 },
-  columnHeader: { fontSize: 13, fontWeight: "700", marginBottom: 8, textAlign: "center" },
-  emptyColumn: { color: "#8E8E93", fontSize: 12, textAlign: "center", paddingVertical: 12 },
+  column: {
+    flex: 1,
+    paddingHorizontal: 10,
+    paddingVertical: spacing.xs,
+  },
+  columnHeader: {
+    fontSize: typography.caption.fontSize,
+    fontWeight: "700",
+    marginBottom: spacing.sm,
+    textAlign: "center",
+  },
+  emptyColumn: {
+    color: colors.textSecondary,
+    fontSize: typography.badge.fontSize,
+    textAlign: "center",
+    paddingVertical: spacing.md,
+  },
   contributorMini: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 6,
     gap: 6,
   },
-  contributorMiniDistance: { color: "#8E8E93", fontSize: 12, fontWeight: "600" },
-
-  motivationCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: 16,
-    marginTop: 24,
-    marginBottom: 32,
-    backgroundColor: "#F5F5F0",
-    borderRadius: 12,
-    padding: 16,
-    gap: 10,
+  medal: {
+    fontSize: typography.badge.fontSize,
+    width: 22,
+    textAlign: "center",
+    color: colors.textSecondary,
+    fontWeight: "600",
   },
-  motivationText: { flex: 1, color: "#8E8E93", fontSize: 13, fontWeight: "500" },
-
+  contributorName: {
+    flex: 1,
+    color: colors.textPrimary,
+    fontSize: typography.caption.fontSize,
+    fontWeight: "500",
+  },
+  contributorMiniDistance: {
+    color: colors.textSecondary,
+    fontSize: typography.badge.fontSize,
+    fontWeight: "600",
+  },
+  motivationCard: {
+    marginHorizontal: spacing.md,
+    marginTop: spacing.lg,
+    marginBottom: spacing.xl,
+    backgroundColor: colors.bgSurface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderDefault,
+    padding: spacing.md,
+  },
+  motivationText: {
+    color: colors.textSecondary,
+    fontSize: typography.caption.fontSize,
+    fontWeight: "500",
+    textAlign: "center",
+  },
   emptyStateContainer: {
     flexGrow: 1,
     alignItems: "center",
-    paddingHorizontal: 32,
+    paddingHorizontal: spacing.xl,
     paddingTop: 60,
   },
-  emptyTitle: { color: "#1A1A1A", fontSize: 20, fontWeight: "700", marginTop: 16 },
-  emptySubtext: { color: "#8E8E93", fontSize: 14, textAlign: "center", marginTop: 8, marginBottom: 24 },
+  emptyTitle: {
+    color: colors.textPrimary,
+    fontSize: typography.title.fontSize,
+    fontWeight: typography.title.fontWeight,
+    marginTop: spacing.md,
+  },
+  emptySubtext: {
+    color: colors.textSecondary,
+    fontSize: typography.caption.fontSize,
+    textAlign: "center",
+    marginTop: spacing.sm,
+    marginBottom: spacing.lg,
+  },
   challengeBtn: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    backgroundColor: "#FF6B35",
-    borderRadius: 8,
+    gap: spacing.sm,
+    backgroundColor: colors.accentBlue,
+    borderRadius: radius.sm,
     paddingVertical: 14,
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.lg,
   },
-  challengeBtnText: { color: "#FFF", fontWeight: "600", fontSize: 15 },
-
-  pastWarsSection: { width: "100%", marginTop: 32 },
+  challengeBtnText: {
+    color: "#FFF",
+    fontWeight: "600",
+    fontSize: typography.body.fontSize,
+  },
+  pastWarsSection: {
+    width: "100%",
+    marginTop: spacing.xl,
+  },
   pastWarRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 8,
-    backgroundColor: "#F5F5F0",
-    borderRadius: 10,
+    marginTop: spacing.sm,
+    backgroundColor: colors.bgSurface,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.borderDefault,
     overflow: "hidden",
   },
-  pastWarBar: { width: 4, height: "100%", minHeight: 48 },
-  pastWarInfo: { padding: 12, flex: 1 },
-  pastWarResult: { color: "#1A1A1A", fontSize: 14, fontWeight: "600" },
-  pastWarScore: { color: "#8E8E93", fontSize: 13, marginTop: 2 },
+  pastWarInfo: { padding: spacing.md, flex: 1 },
+  pastWarResult: {
+    color: colors.textPrimary,
+    fontSize: typography.caption.fontSize,
+    fontWeight: "600",
+  },
+  pastWarScore: {
+    color: colors.textSecondary,
+    fontSize: typography.badge.fontSize,
+    marginTop: 2,
+  },
   pastWarBadge: {
     width: 32,
     height: 32,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: spacing.md,
   },
-  pastWarBadgeText: { color: "#FFFFFF", fontSize: 14, fontWeight: "800" },
-
+  pastWarBadgeText: {
+    color: "#FFFFFF",
+    fontSize: typography.caption.fontSize,
+    fontWeight: "800",
+  },
   pendingCard: {
     alignItems: "center",
-    marginHorizontal: 16,
-    marginTop: 40,
-    backgroundColor: "#F5F5F0",
-    borderRadius: 16,
-    padding: 32,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.xl,
+    backgroundColor: colors.bgSurface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.borderDefault,
+    padding: spacing.xl,
   },
-  pendingTitle: { color: "#1A1A1A", fontSize: 20, fontWeight: "700", marginTop: 16 },
-  pendingSubtext: { color: "#8E8E93", fontSize: 14, textAlign: "center", marginTop: 8, marginBottom: 24 },
-  challengeActions: { flexDirection: "row", gap: 12, width: "100%" },
+  pendingTitle: {
+    color: colors.textPrimary,
+    fontSize: typography.title.fontSize,
+    fontWeight: typography.title.fontWeight,
+    marginTop: spacing.md,
+  },
+  pendingSubtext: {
+    color: colors.textSecondary,
+    fontSize: typography.caption.fontSize,
+    textAlign: "center",
+    marginTop: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  challengeActions: {
+    flexDirection: "row",
+    gap: spacing.md,
+    width: "100%",
+  },
   acceptBtn: {
     flex: 1,
-    backgroundColor: "#FF6B35",
-    borderRadius: 8,
+    backgroundColor: colors.accentBlue,
+    borderRadius: radius.sm,
     paddingVertical: 14,
     alignItems: "center",
   },
-  acceptBtnText: { color: "#FFF", fontWeight: "600", fontSize: 15 },
+  acceptBtnText: {
+    color: "#FFF",
+    fontWeight: "600",
+    fontSize: typography.body.fontSize,
+  },
   declineBtn: {
     flex: 1,
-    backgroundColor: "#F5F5F0",
-    borderRadius: 8,
+    backgroundColor: colors.bgInput,
+    borderRadius: radius.sm,
     paddingVertical: 14,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#FF3B30",
+    borderColor: colors.accentCoral,
   },
-  declineBtnText: { color: "#FF3B30", fontWeight: "600", fontSize: 15 },
+  declineBtnText: {
+    color: colors.accentCoral,
+    fontWeight: "600",
+    fontSize: typography.body.fontSize,
+  },
   cancelBtn: {
-    marginTop: 16,
+    marginTop: spacing.md,
     paddingVertical: 12,
   },
-  cancelBtnText: { color: "#8E8E93", fontSize: 14, fontWeight: "500" },
-
+  cancelBtnText: {
+    color: colors.textSecondary,
+    fontSize: typography.caption.fontSize,
+    fontWeight: "500",
+  },
   completedCard: {
     alignItems: "center",
-    marginHorizontal: 16,
-    marginTop: 40,
-    backgroundColor: "#F5F5F0",
-    borderRadius: 16,
-    padding: 32,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.xl,
+    backgroundColor: colors.bgSurface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.borderDefault,
+    padding: spacing.xl,
   },
-  completedEmoji: { fontSize: 48 },
-  completedTitle: { color: "#1A1A1A", fontSize: 20, fontWeight: "700", marginTop: 12 },
-  completedScore: { color: "#8E8E93", fontSize: 14, textAlign: "center", marginTop: 8 },
-  completedWinner: { color: "#FF6B35", fontSize: 15, fontWeight: "600", marginTop: 12 },
-
+  completedTitle: {
+    color: colors.textPrimary,
+    fontSize: typography.title.fontSize,
+    fontWeight: typography.title.fontWeight,
+    marginTop: spacing.md,
+  },
+  completedScore: {
+    color: colors.textSecondary,
+    fontSize: typography.caption.fontSize,
+    textAlign: "center",
+    marginTop: spacing.sm,
+  },
+  completedWinner: {
+    color: colors.accentAmber,
+    fontSize: typography.body.fontSize,
+    fontWeight: "600",
+    marginTop: spacing.md,
+  },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "#00000066",
+    backgroundColor: "rgba(0,0,0,0.4)",
     justifyContent: "flex-end",
   },
   modalSheet: {
-    backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: 32,
+    backgroundColor: colors.bgPrimary,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    padding: spacing.lg,
+    paddingBottom: spacing.xl,
     maxHeight: "70%",
   },
   dragHandle: {
@@ -774,38 +928,67 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#D1D1D6",
-    marginBottom: 16,
+    backgroundColor: colors.borderDefault,
+    marginBottom: spacing.md,
   },
-  modalTitle: { color: "#1A1A1A", fontSize: 17, fontWeight: "700", marginBottom: 16 },
+  modalTitle: {
+    color: colors.textPrimary,
+    fontSize: typography.bodyBold.fontSize,
+    fontWeight: typography.bodyBold.fontWeight,
+    marginBottom: spacing.md,
+  },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F2F2F7",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    gap: 8,
+    backgroundColor: colors.bgInput,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
   },
-  searchInput: { flex: 1, color: "#1A1A1A", fontSize: 15, paddingVertical: 12 },
+  searchInput: {
+    flex: 1,
+    color: colors.textPrimary,
+    fontSize: typography.body.fontSize,
+    paddingVertical: 12,
+  },
   searchResultRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: "#F2F2F7",
+    borderBottomColor: colors.borderSubtle,
   },
   searchResultInfo: { flex: 1 },
-  searchResultName: { color: "#1A1A1A", fontSize: 15, fontWeight: "600" },
-  searchResultMembers: { color: "#8E8E93", fontSize: 13, marginTop: 2 },
+  searchResultName: {
+    color: colors.textPrimary,
+    fontSize: typography.body.fontSize,
+    fontWeight: "600",
+  },
+  searchResultMembers: {
+    color: colors.textSecondary,
+    fontSize: typography.caption.fontSize,
+    marginTop: 2,
+  },
   challengeSmallBtn: {
-    backgroundColor: "#FF6B35",
-    borderRadius: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    backgroundColor: colors.accentBlue,
+    borderRadius: radius.sm - 2,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
     minWidth: 80,
     alignItems: "center",
   },
-  challengeSmallBtnDisabled: { backgroundColor: "#D1D1D6" },
-  challengeSmallBtnText: { color: "#FFF", fontWeight: "600", fontSize: 13 },
-  noResults: { color: "#8E8E93", textAlign: "center", marginTop: 20, fontSize: 14 },
+  challengeSmallBtnDisabled: {
+    backgroundColor: colors.bgInput,
+  },
+  challengeSmallBtnText: {
+    color: "#FFF",
+    fontWeight: "600",
+    fontSize: typography.caption.fontSize,
+  },
+  noResults: {
+    color: colors.textSecondary,
+    textAlign: "center",
+    marginTop: spacing.lg,
+    fontSize: typography.caption.fontSize,
+  },
 });

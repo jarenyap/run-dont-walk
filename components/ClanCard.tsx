@@ -1,14 +1,15 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { UsersThreeIcon } from "phosphor-react-native";
+import { UsersThree } from "phosphor-react-native";
 import UserAvatar from "./UserAvatar";
 import type { Clan, ClanRole } from "../types/index";
+import { colors, spacing, radius, typography } from "../theme";
 
 const ROLE_COLORS: Record<ClanRole, string> = {
-  Leader: "#FF6B35",
-  "Co-Leader": "#0A84FF",
-  Moderator: "#34C759",
-  Member: "#8E8E93",
+  Leader: colors.accentAmber,
+  "Co-Leader": colors.accentBlue,
+  Moderator: colors.accentVolt,
+  Member: colors.textTertiary,
 };
 
 interface ClanCardProps {
@@ -19,21 +20,38 @@ interface ClanCardProps {
 
 export default function ClanCard({ clan, role, onPress }: ClanCardProps) {
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
-      <UserAvatar uri={clan.bannerUrl} size={48} name={clan.name} />
+    <TouchableOpacity
+      style={styles.card}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <UserAvatar uri={clan.bannerUrl} name={clan.name} size={48} shape="rounded" />
+
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={1}>
           {clan.name}
         </Text>
         <View style={styles.metaRow}>
-          <UsersThreeIcon size={14} color="#8E8E93" weight="fill" />
-          <Text style={styles.memberCount}>{clan.memberIds.length} members</Text>
-          {clan.currentWarId && <View style={styles.warDot} />}
+          <UsersThree size={14} color={colors.textSecondary} weight="fill" />
+          <Text style={styles.memberCount}>
+            {clan.memberIds.length} members
+          </Text>
+          {clan.currentWarId && (
+            <View style={styles.warDot} />
+          )}
         </View>
       </View>
+
       {role && (
-        <View style={[styles.roleBadge, { backgroundColor: ROLE_COLORS[role] + "22" }]}>
-          <Text style={[styles.roleText, { color: ROLE_COLORS[role] }]}>{role}</Text>
+        <View
+          style={[
+            styles.roleBadge,
+            { backgroundColor: ROLE_COLORS[role] + "22" },
+          ]}
+        >
+          <Text style={[styles.roleText, { color: ROLE_COLORS[role] }]}>
+            {role}
+          </Text>
         </View>
       )}
     </TouchableOpacity>
@@ -44,23 +62,45 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F5F5F0",
-    borderRadius: 12,
-    padding: 12,
-    marginHorizontal: 16,
-    marginBottom: 12,
-    gap: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: colors.bgSurface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderDefault,
+    padding: spacing.md,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.sm,
+    gap: spacing.md,
   },
   info: { flex: 1 },
-  name: { color: "#1A1A1A", fontSize: 15, fontWeight: "600" },
-  metaRow: { flexDirection: "row", alignItems: "center", marginTop: 4, gap: 6 },
-  memberCount: { color: "#8E8E93", fontSize: 13 },
-  warDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#FF3B30", marginLeft: 4 },
-  roleBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 99 },
-  roleText: { fontSize: 11, fontWeight: "600" },
+  name: {
+    color: colors.textPrimary,
+    fontSize: typography.bodyBold.fontSize,
+    fontWeight: typography.bodyBold.fontWeight,
+  },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
+    gap: 6,
+  },
+  memberCount: {
+    color: colors.textSecondary,
+    fontSize: typography.caption.fontSize,
+  },
+  warDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.accentCoral,
+    marginLeft: 2,
+  },
+  roleBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: radius.full,
+  },
+  roleText: {
+    fontSize: typography.badge.fontSize,
+    fontWeight: typography.badge.fontWeight,
+  },
 });
