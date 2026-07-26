@@ -167,6 +167,7 @@ export default function EventsScreen() {
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={s.regionRow}
+                style={{ flexGrow: 0 }}
             >
                 {REGIONS.map((r) => (
                     <TouchableOpacity
@@ -360,19 +361,21 @@ const s = StyleSheet.create({
     regionRow: {
         paddingHorizontal: spacing.md,
         paddingBottom: spacing.sm,
-        gap: spacing.xs,
+        gap: 6,
+        alignItems: "center",
     },
     regionChip: {
         backgroundColor: colors.bgInput,
-        paddingHorizontal: 14,
-        paddingVertical: 6,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
         borderRadius: radius.full,
+        alignSelf: "flex-start",
     },
     regionChipActive: {
         backgroundColor: colors.accentBlue,
     },
     regionChipText: {
-        fontSize: typography.caption.fontSize,
+        fontSize: 12,
         fontWeight: "600",
         color: colors.textSecondary,
     },
