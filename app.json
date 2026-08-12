@@ -2,7 +2,7 @@
   "expo": {
     "name": "Walk-Dont-Run",
     "slug": "Walk-Dont-Run",
-    "scheme": "Walk-Dont-Run",
+    "scheme": "walk-dont-run",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,7 +14,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.plompy.WalkDontRun",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -22,14 +26,29 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.plompy.WalkDontRun"
     },
     "web": {
       "bundler": "metro",
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
-    ]
+      "expo-router",
+      "@react-native-community/datetimepicker"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "29a1b2cb-cd7d-420d-b182-a47272eeea20"
+      }
+    },
+    "owner": "run-dont-walk",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/29a1b2cb-cd7d-420d-b182-a47272eeea20"
+    }
   }
 }
