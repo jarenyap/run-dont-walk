@@ -1,12 +1,12 @@
 # Run Don't Walk
 
-![Run Don't Walk](docs/hero.png)
+<p align="center"><img src="docs/hero.png" width="480" alt="Run Don't Walk"></p>
 
 **Making running a team sport.**
 
 A social running app built with React Native, TypeScript, and Firebase. Log runs, follow friends, join clans, compete in 2-week clan wars, and show up for group runs.
 
-Built with Dylan Ho for NUS Orbital 2026 and awarded the **Apollo 11** tier, the second-highest of four achievement levels.
+Built with [Dylan Ho](https://github.com/holyd28) for NUS Orbital 2026 and awarded the **Apollo 11** tier, the second-highest of four achievement levels.
 
 ## Features
 
@@ -26,18 +26,11 @@ Built with Dylan Ho for NUS Orbital 2026 and awarded the **Apollo 11** tier, the
 - Group run events by Singapore region (Central / North / South / East / West) with transactional RSVP
 - CSV export of run history via the native share sheet
 
-## Screenshots
-
-| | | |
-|---|---|---|
-| ![Home feed](docs/screenshots/feed.jpg) | ![Log run](docs/screenshots/log-run.jpg) | ![Events](docs/screenshots/events.jpg) |
-| ![Clans](docs/screenshots/clans.jpg) | ![Clan war](docs/screenshots/clan-war.jpg) | ![Profile statistics](docs/screenshots/profile.jpg) |
-
 ## Architecture
 
 The app follows a service-layer architecture: screens own UI state only, all Firestore reads and writes go through typed service modules, and real-time updates stream down via `onSnapshot` listeners. No state-management library was needed; a single auth context covers session state (YAGNI).
 
-![System architecture](docs/diagrams/architecture.png)
+<p align="center"><img src="docs/diagrams/architecture.png" width="640" alt="System architecture"></p>
 
 - [Navigation flow](docs/diagrams/navigation.png)
 - [Firestore data model](docs/diagrams/firestore-model.png)
@@ -53,10 +46,6 @@ The app follows a service-layer architecture: screens own UI state only, all Fir
 **Android**
 
 Download the APK from [Google Drive](https://drive.google.com/file/d/1OpbqNXQS7kL4-_CPGqibXhIam0F1eEyL/view?usp=sharing), transfer it to your phone, allow unknown-app installs, and open it.
-
-**Demo video**
-
-[Placeholder: link to 60–90 s demo clip once hosted]
 
 ## Setup for development
 
