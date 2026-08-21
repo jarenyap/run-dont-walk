@@ -45,7 +45,7 @@ The app follows a service-layer architecture: screens own UI state only, all Fir
 
 **Android**
 
-Download the APK from [Google Drive](https://drive.google.com/file/d/1OpbqNXQS7kL4-_CPGqibXhIam0F1eEyL/view?usp=sharing), transfer it to your phone, allow unknown-app installs, and open it.
+Download the APK from [Google Drive](https://drive.google.com/file/d/1WZRZLwdK8qNWUCon1IVuxl7U_WAxmKx2/view?usp=sharing), transfer it to your phone, allow unknown-app installs, and open it.
 
 ## Setup for development
 
