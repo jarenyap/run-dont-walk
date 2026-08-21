@@ -57,7 +57,7 @@ export default function HomeFeedScreen() {
       <>
         <Stack.Screen
           options={{
-            title: "Walk Don't Run",
+            title: "Run Don't Walk",
             headerTitleStyle: {
               fontWeight: "800",
               fontSize: 20,
@@ -79,7 +79,7 @@ export default function HomeFeedScreen() {
     <>
       <Stack.Screen
         options={{
-          title: "Walk Don't Run",
+          title: "Run Don't Walk",
           headerTitleStyle: {
             fontWeight: "800",
             fontSize: 20,

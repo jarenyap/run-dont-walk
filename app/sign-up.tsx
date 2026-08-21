@@ -48,7 +48,7 @@ export default function SignUp() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.brand}>Walk Don't Run</Text>
+      <Text style={styles.brand}>Run Don't Walk</Text>
 
       <Text style={styles.title}>Create account</Text>
 

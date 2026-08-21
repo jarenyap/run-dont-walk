@@ -24,7 +24,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="home-feed"
         options={{
-          title: "Walk Don't Run",
+          title: "Run Don't Walk",
           tabBarLabel: "Home",
           headerTitleStyle: {
             fontWeight: "800",
